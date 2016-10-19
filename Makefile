@@ -1,5 +1,3 @@
-
-
 CC=g++
 CFLAGS=-g -c -Wall
 LIBDIRS= `root-config --cflags --libs`
