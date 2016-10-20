@@ -46,6 +46,14 @@ int a_main() {
 	rectangle rec = rectangle(10, 10);
 
 	cout << "This is width " << rec.get_width() << " and this is length " << rec.get_length() << endl;
+
+	array<double, 2> hihi;
+	hihi[0] = 3;
+	hihi[1] = 2;
+	
+	for(int j = 0; j < 2; j++) {
+		cout << "hihi = " << hihi[j] << endl;
+	}
 	
 	return 0;
 	}

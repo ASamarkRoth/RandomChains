@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "RandomChains.h"
 #include <assert.h>
 #include "TCanvas.h"
@@ -7,6 +8,8 @@
 #include "TStyle.h"
 #include "TAxis.h"
 #include "TGaxis.h"
+#include "math.h"
+#include <typeinfo>
 
 using namespace std;
 
@@ -14,7 +17,7 @@ using namespace std;
 RandomChains::RandomChains() {
 
 	//Default value for number of pixels in the implantation detector
-	nbr_pixels = 1024;
+	//nbr_pixels = 1024;
 	
 	//Interval for accepted superheavy nuclei alpha decays (10*keV)
 	lower_limit_alphas = 900; upper_limit_alphas = 1100;
@@ -47,18 +50,21 @@ RandomChains::RandomChains() {
 		switch(run_type) {
 			case 0 : 
 				cout << "You are running default" << endl;
-				compute_random_chains(0);
+				prepare_data(0);
 				valid_input = kTRUE;
+				experiment_time = 1433000;
 				break;
 			case 1 : 
 				cout << "User customised input: " << endl;
-				compute_random_chains(1);
+				prepare_data(1);
 				valid_input = kTRUE;
+				experiment_time = 1433000;
 				break;
 			case 2 : 
 				cout << "You are running the sanity check" << endl;
-				compute_random_chains(2);
+				prepare_data(2);
 				valid_input = kTRUE;
+				experiment_time = 1000000;
 				break;
 			default : 
 				cout << "Please insert a number, 0, 1 or 2" << endl;
@@ -66,12 +72,18 @@ RandomChains::RandomChains() {
 	}
 
 	set_chains(run_type);
-
-	//Calculates the background rates for alpha, escape in beam on and off. Number of implants are also calculated
+	dump_input_to_file();
+	
+	//Calculate the number of implants per pixel
+	calculate_implants();
+	
+	//Calculates the background rates for alpha, escape in beam on and off and fission.
 	calculate_rates(run_type);
 
 	//Calculates the number of expected random chains IN TOTAL for the specific chain/chains given as input to the program
 	calculate_expected_nbr_random_chains();
+
+	print_result();
 	
 			
 }
@@ -81,17 +93,30 @@ RandomChains::~RandomChains() {
 }
 
 void RandomChains::set_chains(Int_t input) {
-	cout << "Setting Chains ..."  << endl;
+	if(input == 2) {
+		set_test_chains();
+		return;
+	}
+	cout << "Read decay chains from input file? <y/n>. If no, you will need to insert details of your chain step by step. "  << endl;
+	char answer; 
+	cin >> answer; 
+	
+	if(answer == 'y') {
+		set_chains_from_input_file();
+		return;
+	}
 
+	Int_t l_temp;
 	cout << "Insert the number of decays in the chain, including a fission (if present)" << endl;
-	cin >> chain_length;
+	cin >> l_temp;
+	chain_length.push_back(l_temp);
 
 	char ctemp;
 	Int_t itemp;
 	Int_t itemp2;
 
-	for(Int_t i = 0; i < chain_length; i++) {
-		cout << "Decay number:" << i << " What type is it? (alpha=a, escape=e or fission=f)" << endl;
+	for(Int_t i = 0; i < chain_length.front(); i++) {
+		cout << "Decay number: " << i+1 << " What type is it? (alpha=a, escape=e or fission=f)" << endl;
 		cin >> ctemp;
 		decay_type.push_back(ctemp);
 		cout << "Was the beam ON (type 1) or OFF (type 0) during this decay?" << endl;
@@ -102,16 +127,23 @@ void RandomChains::set_chains(Int_t input) {
 		time_span.push_back(itemp);
 	}
 
+
 	cout << "Size of vector is = " << decay_type.size() << endl;
 	for(vector<char>::iterator it = decay_type.begin(); it != decay_type.end(); it++) {
 		cout << *it << endl;
 	}
 }
 
+void RandomChains::set_test_chains() {
+	chain_length = {3};
+	decay_type = {'a', 'e', 'f'};
+	beam_status = {1, 0, 0};
+	time_span = {1, 1, 1};
+}
 
-void RandomChains::compute_random_chains(Int_t run_type) {
+
+void RandomChains::prepare_data(Int_t run_type) {
 	if(run_type == 2) {
-		cout << "Generating test data ... " << endl;
 		generate_test_data();
 	}
 	else {
@@ -132,23 +164,33 @@ void RandomChains::generate_test_data() {
 		sprintf(cname,"h_energy_pixel_reconstructed_OFF_%d",k);
 		h_energy_pixel_reconstructed_beam_off[k] = new TH1F(cname,ctitle, 4096, 0, 40.96);
 
+		//Setting the values to insert in the test spectra:
+		eon = 4;
+		eoff = 3;
+		non = 3;
+		noff = 2;
+		aon = 2;
+		aoff = 1;
+		imps = 100;
+		fissions = 1;
+
 		for(Int_t i = lower_limit_escapes; i < upper_limit_alphas; i++) {
 			if(i < upper_limit_escapes) {
-				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, 4);
-				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, 3);
+				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, eon);
+				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, eoff);
 			}
 			else if(i >= upper_limit_escapes && i < lower_limit_alphas) {
-				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, 3);
-				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, 2);
+				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, non);
+				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, noff);
 			}
 			else {
-				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, 2);
-				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, 1);
+				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, aon);
+				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, aoff);
 			}
 		}
 		
-		h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(1500, 100);
-		fissions_pixels[k] = 1;
+		h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(1500, imps);
+		fissions_pixels[k] = fissions;
 	}
 
 
@@ -188,11 +230,24 @@ void RandomChains::read_experimental_data() {
 	cout << "Reading data " << endl;
 }
 
+void RandomChains::calculate_implants() {
+	for(Int_t i = 0; i < nbr_pixels; i++) {
+		Int_t acc_counts = 0; 
+		for(Int_t k = lower_limit_implants; k < upper_limit_implants; k++) {
+			acc_counts += h_energy_pixel_reconstructed_beam_on[i]->GetBinContent(k);
+		}
+		nbr_implants[i] = acc_counts;
+	}
+
+
+}
+
 void RandomChains::calculate_rates(Int_t run_type) {
 	cout << "Calculating rates " << endl;
 	if(run_type != 2) {
 		cout << "Doing fission magic" << endl;
 	}
+
 	
 	for(Int_t i = 0; i < decay_type.size(); i++) {
 		rate_calc(decay_type.at(i), beam_status.at(i));
@@ -205,6 +260,39 @@ void RandomChains::rate_calc(char type, Int_t beam) {
 	TH1F** hist;
 	if(beam) hist = h_energy_pixel_reconstructed_beam_on;
 	else hist = h_energy_pixel_reconstructed_beam_off;
+
+	//Double_t rate_temp[nbr_pixels];
+	array<Double_t, nbr_pixels> rate_temp;
+	
+	Int_t lower_limit, upper_limit;
+	if(type == 'a') {
+		lower_limit = lower_limit_alphas;
+		upper_limit = upper_limit_alphas;
+	}
+	else if(type == 'e') {
+		lower_limit = lower_limit_escapes;
+		upper_limit = upper_limit_escapes;
+	}
+	else if(type == 'f') {
+		for(Int_t i = 0; i < nbr_pixels; i++) {
+			rate_temp[i] = fissions_pixels[i]/experiment_time;
+		}
+		rate.push_back(rate_temp);
+		return;
+	}
+	else {
+		cout << "Please input correct decay types, i.e. 'a', 'e' or 'f' " << endl;
+		return;
+	}
+
+	for(Int_t i = 0; i < nbr_pixels; i++) {
+		Int_t acc_counts = 0;
+		for(Int_t k = lower_limit; k < upper_limit; k++) {
+			acc_counts += hist[i]->GetBinContent(k);
+		}
+		rate_temp[i] = acc_counts/experiment_time;
+	}
+	rate.push_back(rate_temp);
 /*
 //Calculate rate of a certain type of events, between lower_limit and upper_limit
 double rate_calc(int pixel_number, int lower_limit, int upper_limit, TH1F **h_energy, double time){
@@ -223,9 +311,29 @@ double rate_calc(int pixel_number, int lower_limit, int upper_limit, TH1F **h_en
 */
 }
 
+//Calculate number of expected random chains in TOTAL
 void RandomChains::calculate_expected_nbr_random_chains() {
-	cout << "Calculating number of expected random chains " << endl;
+	cout << "Calculating expected number of random chains " << endl;
+	Double_t randoms_in_pixel[nbr_pixels];
+	cout << "Front = " << chain_length.front() << endl;
+	for(Int_t l = 0; l < chain_length.front(); l++) {
+		cout << "l = " << l << endl;
+		for(Int_t i = 0; i < nbr_pixels; i++) {
+			if(l == 0) randoms_in_pixel[i] = nbr_implants[i];
+			randoms_in_pixel[i] *= (1-Poisson_pmf(0,rate.at(l)[i]*time_span.at(l)));
+		}
+	}
+
+	cout << "hmm 1" << endl;
+	//Sum the number of randoms in all pixels to get the TOTAL number of random chains
+	Double_t random_chains_temp = 0; 
+	for(Int_t i = 0; i < nbr_pixels; i++) {
+		random_chains_temp += randoms_in_pixel[i];
+	}
+
+	nbr_expected_random_chains.push_back(random_chains_temp);
 }
+
 
 int main() {
 
@@ -239,6 +347,8 @@ int main() {
 void run_main() {
 	main();
 }
+
+
 
 void RandomChains::plot_spectra() {
 
@@ -316,3 +426,123 @@ void RandomChains::plot_spectra() {
 
 }
 
+void RandomChains::print_result() {
+	cout << "**************************************************" << endl;
+	if(run_type == 2) cout << "These are the result of the TEST run: " << endl;
+	else cout << "These are the result of the run: " << endl;
+
+	cout << "The total number of expected random chains are: " << endl;
+
+	for(Int_t j = 0; j < nbr_expected_random_chains.size(); j++) {
+		cout << "For chain " << j+1 << ": " << nbr_expected_random_chains.at(j) << endl;
+	}
+	if(run_type == 2) print_test_result();
+}
+
+void RandomChains::print_test_result() {
+	cout << "*************************************************" << endl;
+	cout << "NOW TEST CALCULATION" << endl;
+	cout << "By construction, the rate in every pixel will be the same" << endl;
+	cout << "In the test case, all time spans are set to one second.  " << endl;
+
+	Double_t rate_escapes_on = (upper_limit_escapes-lower_limit_escapes)*eon/experiment_time;
+	Double_t rate_escapes_off = (upper_limit_escapes-lower_limit_escapes)*eoff/experiment_time;
+
+	Double_t rate_alphas_on = (upper_limit_alphas-lower_limit_alphas)*aon/experiment_time;
+	Double_t rate_alphas_off = (upper_limit_alphas-lower_limit_alphas)*aoff/experiment_time;
+
+	Int_t nbr_imps = imps;
+
+	Double_t fission_rate = fissions/experiment_time;
+
+	Double_t test_randoms = nbr_imps*(1-Poisson_pmf(0,rate_alphas_on))*(1-Poisson_pmf(0, rate_escapes_off))*(1-Poisson_pmf(0, fission_rate)) * nbr_pixels;
+	cout << "test_randoms = nbr_imps*(1-Poisson_pmf(0,rate_alphas_on))*(1-Poisson_pmf(0, rate_escapes_off))*(1-Poisson_pmf(0, fission_rate)) * nbr_pixels;" << endl;
+
+	cout << "The CALCULATED total number of random chains with the test data are: " << test_randoms << endl;
+	
+}
+
+void RandomChains::dump_input_to_file() {
+	char output[64];
+	if(run_type == 2) {
+		sprintf(output, "dump_test.txt");
+	}
+	else sprintf(output, "dump_input.txt");
+	char out[64];
+	sprintf(out, "File %s was written ... ", output);
+	ofstream dump;
+	dump.open(output);
+	dump << "Lines starting with a '#' indicates the start of a new chain. OBS, the two first lines are not read in." << endl;
+	dump << "Type (alpha=a, escape=e and fission=f) 	Beam ON (=1) or OFF (=0)	Time span (s) \n";
+	dump << "#" << chain_length.at(0) << endl;
+	for(Int_t j = 0; j < chain_length.front(); j++) {
+		dump << decay_type.at(j) << " " << beam_status.at(j) << " " << time_span.at(j) << endl;
+	}
+	dump.close();
+
+	cout << out << endl;
+}
+
+void RandomChains::set_chains_from_input_file() {
+	string filename;
+	cout << "Enter full name of input file name: (File dump_input.txt should be available): ";
+	cin >> filename;
+	ifstream input_chains(filename,ios::in);
+	if(!input_chains) cout << "Could not find file" << endl;
+	Int_t beam;
+	Double_t time;
+	char type;
+	string str;
+	stringstream ss;
+	Int_t counter = 0;
+	cout << "The following was read in: " << endl;
+	while(getline(input_chains, str)) {
+		cout << str << endl;
+		if(chain_length.size() > 0) cout << "chain length = " << chain_length.at(0) << endl;
+		if(counter < 2) {
+			counter++;
+			continue;
+		}
+		if(str[0] == '#') {
+			string number = string(str.begin()+1, str.end());
+			chain_length.push_back(stoi(number));
+		}
+		else {
+			ss = stringstream(str);
+			ss >> type >> beam >> time;
+			decay_type.push_back(type);
+			beam_status.push_back(beam);
+			time_span.push_back(time);
+		}
+	}
+	
+	/*
+	cout << "length of chain lengtj = " << chain_length.size() << endl;
+	cout << "chain length = " << chain_length.at(0) << endl;
+	cout << "Decay type =, beam status, time " << endl;
+	for(Int_t j = 0; j < decay_type.size(); j++) {
+		cout << decay_type.at(j) << " ";
+		cout << beam_status.at(j) << " ";
+		cout << time_span.at(j) << " ";
+	}
+	*/
+			
+}
+
+/* Mathematical functions */
+
+//Poisson probability mass function
+Double_t Poisson_pmf(Int_t nbr_to_observe, Double_t expected_value) {
+	Double_t prob;
+	prob = (exp(-expected_value)*pow(expected_value,nbr_to_observe))/(factorial(nbr_to_observe));
+	return prob;
+}
+
+Int_t factorial(Int_t k){
+	Int_t ret;
+	ret = 1;
+	for (Int_t j = 1; j <= k; j++){
+	ret = ret*j;
+	}
+	return ret;
+}

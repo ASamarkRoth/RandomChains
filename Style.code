@@ -19,7 +19,7 @@ gStyle->SetLegendBorderSize(0);
 gStyle->SetLineWidth(2.); //X and Y axis thickness 
 gStyle->SetLabelSize(0.05,"xy"); //Size of numbers on X and Y axes  
 gStyle->SetLabelOffset(0.01,"xy"); //Offset of numbers on X and Y axes
-gStyle->SetLabelFont(42,"xy"); //Font on labels on X and Y axes
+gStyle->SetLabelFont(42,"xy"); //Font on labels on X and Y axes yes
 //gStyle->SetHistoLineWidth(5);
 gStyle->SetCanvasBorderMode(0);     // turn off canvas borders
 gStyle->SetPadBorderMode(0);

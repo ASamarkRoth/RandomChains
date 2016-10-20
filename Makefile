@@ -3,7 +3,8 @@ CFLAGS=-g -c -Wall
 LIBDIRS= `root-config --cflags --libs`
 INCLUDES= -L${ROOTSYS}/lib 
 LDFLAGS=
-SOURCES=RandomChains.cc
+SOURCES=RandomChains.cc 
+DEPS=RandomChains.h Style.code
 OBJECTS=$(SOURCES:.cc=.o)
 EXECUTABLE=run_file
 
@@ -11,7 +12,7 @@ EXECUTABLE=run_file
 #"executes" dependencies $(SOURCES) and target $(EXECUTABLE)
 all: $(SOURCES) $(EXECUTABLE)
 	
-$(EXECUTABLE): $(OBJECTS)
+$(EXECUTABLE): $(OBJECTS) $(DEPS) 
 	$(CC) $(LIBDIRS) $(INCLUDES) $(LDFLAGS) $(OBJECTS) -o $@
 
 .cc.o:
