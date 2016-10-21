@@ -82,28 +82,28 @@ char chead[64];
 for(Int_t i = 0; i < 1024; i++){ 
 sprintf(chis,"h_energy_pixel_off_%d",i);
 sprintf(chead,"energy_pixel_off_%d",i);
-h_energy_pixel_off[i] = new TH1F(chis,chead,4096,0,4096); 
+h_energy_pixel_off[i] = new TH1F(chis,chead,4096,0,40.96); 
 } 
 for(Int_t i = 0; i < 1024; i++){ 
 sprintf(chis,"h_energy_pixel_on_%d",i);
 sprintf(chead,"energy_pixel_on_%d",i);
-h_energy_pixel_on[i] = new TH1F(chis,chead,4096,0,4096); 
+h_energy_pixel_on[i] = new TH1F(chis,chead,4096,0,40.96); 
 } 
 for(Int_t i = 0; i < 1024; i++){ 
 sprintf(chis,"h_energy_pixel_recoff_%d",i);
-sprintf(chead,"energy_pixel_recoff_%d",i);
-h_energy_pixel_recoff[i] = new TH1F(chis,chead,4096,0,4096); 
+sprintf(chead,"Energy, pixel %d (Experimental data)",i);
+h_energy_pixel_recoff[i] = new TH1F(chis,chead,4096,0,40.96); 
 } 
 for(Int_t i = 0; i < 1024; i++){ 
 sprintf(chis,"h_energy_pixel_recon_%d",i);
-sprintf(chead,"energy_pixel_recon_%d",i);
-h_energy_pixel_recon[i] = new TH1F(chis,chead,4096,0,4096); 
+sprintf(chead,"Energy, Beam OFF, pixel %d (Experimental data)",i);
+h_energy_pixel_recon[i] = new TH1F(chis,chead,4096,0,40.96); 
 } 
 
-h_energy_pixel_recon_tot = new TH1F("h_energy_pixel_recon_tot","recon_tot",4096,0,40960); 
-h_energy_pixel_recoff_tot = new TH1F("h_energy_pixel_recoff_tot","recoff_tot",4096,0,40960); 
-h_energy_pixel_on_tot = new TH1F("h_energy_pixel_on_tot","on_tot",4096,0,40960); 
-h_energy_pixel_off_tot = new TH1F("h_energy_pixel_off_tot","off_tot",4096,0,40960); 
+h_energy_pixel_recon_tot = new TH1F("h_energy_pixel_recon_tot","Energy, Total (Experimental data)",4096,0,40.960); 
+h_energy_pixel_recoff_tot = new TH1F("h_energy_pixel_recoff_tot","Energy, Total, Beam OFF (Experimental data)",4096,0,40.960); 
+h_energy_pixel_on_tot = new TH1F("h_energy_pixel_on_tot","on_tot",4096,0,40.960); 
+h_energy_pixel_off_tot = new TH1F("h_energy_pixel_off_tot","off_tot",4096,0,40.960); 
 
 //Create root file with subdirectories
 //TFile *myoutput =  new TFile("Spectra.root", "RECREATE");
