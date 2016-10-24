@@ -17,26 +17,36 @@ class RandomChains {
 		int run_type;
 		double experiment_time;
 
+		//bin limits for the different decay types
 		int lower_limit_alphas, upper_limit_alphas;
 		int lower_limit_escapes, upper_limit_escapes;
 		int lower_limit_implants, upper_limit_implants;
 
+		//Spectra, summed all pixels, beam ON/OFF
 		TH1F* h_energy_reconstructed_beam_off_tot;
 		TH1F* h_energy_reconstructed_beam_on_tot;
 
+		//Spectrum for every pixel, beam ON/OFF
 		TH1F* h_energy_pixel_reconstructed_beam_off[nbr_pixels];
 		TH1F* h_energy_pixel_reconstructed_beam_on[nbr_pixels];
+
+		//pixels with fissions
 		double fissions_pixels[nbr_pixels];
+
+		//Number of implants for every pixel
 		int nbr_implants[nbr_pixels];
 
-
+		//Chain/chains characteristics
 		vector<int> chain_length;
 		vector<int> beam_status;
 		vector<char> decay_type;
 		vector<float> time_span;
+
+		//Background rates and expected number of random chains per pixel
 		vector<array<long double, nbr_pixels>> rate;
 		vector<double> nbr_expected_random_chains;
 
+		//Help variables to generate the test data and for verification
 		int eon;
 		int eoff;
 		int non;
@@ -52,7 +62,7 @@ class RandomChains {
 		void generate_test_data();
 		void read_experimental_data();
 		void calculate_implants();
-		void calculate_rates(int run_type);
+		void calculate_rates();
 		void calculate_expected_nbr_random_chains();
 		void set_chains(int run_type);
 		void set_test_chains();
@@ -73,7 +83,7 @@ class RandomChains {
 
 };
 
-
+/* Mathematical functions (non-member) */
 double Poisson_pmf(int nbr_to_observe, double expected_value);
 
 int factorial(int k);
