@@ -33,7 +33,7 @@ class RandomChains {
 		vector<int> chain_length;
 		vector<int> beam_status;
 		vector<char> decay_type;
-		vector<double> time_span;
+		vector<float> time_span;
 		vector<array<long double, nbr_pixels>> rate;
 		vector<double> nbr_expected_random_chains;
 
@@ -68,6 +68,7 @@ class RandomChains {
 		void plot_spectra();
 		void run_main();
 		void dump_input_to_file();
+		void compare_rates();
 		
 
 };
