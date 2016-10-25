@@ -29,9 +29,10 @@ class RandomChains {
 		//Spectrum for every pixel, beam ON/OFF
 		TH1F* h_energy_pixel_reconstructed_beam_off[nbr_pixels];
 		TH1F* h_energy_pixel_reconstructed_beam_on[nbr_pixels];
+		TH1F* h_energy_pixel_beam_on[nbr_pixels];
 
 		//pixels with fissions
-		double fissions_pixels[nbr_pixels];
+		long double fissions_pixels[nbr_pixels];
 
 		//Number of implants for every pixel
 		int nbr_implants[nbr_pixels];
@@ -44,7 +45,7 @@ class RandomChains {
 
 		//Background rates and expected number of random chains per pixel
 		vector<array<long double, nbr_pixels>> rate;
-		vector<double> nbr_expected_random_chains;
+		vector<long double> nbr_expected_random_chains;
 
 		//Help variables to generate the test data and for verification
 		int eon;
@@ -78,13 +79,12 @@ class RandomChains {
 		void plot_spectra();
 		void run_main();
 		void dump_input_to_file();
-		void compare_rates();
 		
 
 };
 
 /* Mathematical functions (non-member) */
-double Poisson_pmf(int nbr_to_observe, double expected_value);
+double Poisson_pmf(int nbr_to_observe, float expected_value);
 
 int factorial(int k);
 

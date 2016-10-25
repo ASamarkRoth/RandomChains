@@ -81,7 +81,7 @@ int u_main() {
   }
 
   if(fission_model == "one_or_average"){
-    ifstream input("Fission-BeamOff-Pixel_modified.txt",ios::in);
+    ifstream input("pixels_with_fissions.txt",ios::in);
     while (input){
       input>>temp_value;
       if(fission_array[temp_value] == 1) cout<<temp_value<<endl;

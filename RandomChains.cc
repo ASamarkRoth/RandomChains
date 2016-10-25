@@ -261,8 +261,11 @@ void RandomChains::read_experimental_data() {
 		double fissions_pixels[nbr_pixels];
 
 	*/
+
+	
+
 	//Prepare/read in root spectra
-	TFile  *file = new TFile("Spectra_test.root");
+	TFile  *file = new TFile("Spectra.root");
 
 	h_energy_reconstructed_beam_off_tot = (TH1F*)file->Get("h_energy_pixel_recoff_tot"); 
 	h_energy_reconstructed_beam_on_tot = (TH1F*)file->Get("h_energy_pixel_recon_tot"); 
@@ -275,6 +278,11 @@ void RandomChains::read_experimental_data() {
 	for(int i = 0; i < nbr_pixels; i++){ 
 	sprintf(ctitle,"recoff/h_energy_pixel_recoff_%d",i);
 	h_energy_pixel_reconstructed_beam_off[i] = (TH1F*)file->Get(ctitle); 
+	} 
+
+	for(int i = 0; i < nbr_pixels; i++){ 
+	sprintf(ctitle,"on/h_energy_pixel_on_%d",i);
+	h_energy_pixel_beam_on[i] = (TH1F*)file->Get(ctitle); 
 	} 
 
 	for(int i = 0; i < nbr_pixels; i++) {
@@ -485,11 +493,21 @@ void RandomChains::calculate_implants() {
 		int nbr_implants[nbr_pixels];
 	
 	*/
-		
+
+
+	TH1F** hist;
+	/*
+	if(h_energy_pixel_beam_on!=NULL) hist = h_energy_pixel_beam_on;
+	else hist = h_energy_pixel_reconstructed_beam_on;
+	*/
+
+	if(run_type == 1 || run_type == 0) hist = h_energy_pixel_beam_on;
+	else hist = h_energy_pixel_reconstructed_beam_on;
+
 	for(int i = 0; i < nbr_pixels; i++) {
 		int acc_counts = 0; 
 		for(int k = lower_limit_implants; k < upper_limit_implants; k++) {
-			acc_counts += h_energy_pixel_reconstructed_beam_on[i]->GetBinContent(k);
+			acc_counts += hist[i]->GetBinContent(k);
 		}
 		nbr_implants[i] = acc_counts;
 	}
@@ -634,6 +652,11 @@ void RandomChains::print_result() {
 		cout << "For chain " << j+1 << ": " << nbr_expected_random_chains.at(j) << endl;
 	}
 	if(run_type == 2) print_test_result();
+
+	for(int j = 0; j<nbr_pixels; j++) {
+		cout << "For pixel " << j << " nbr_implants = " << nbr_implants[j] << endl;
+	}
+
 }
 
 void RandomChains::print_test_result() {
@@ -764,7 +787,7 @@ void run_main() {
 /* Mathematical functions (non-member functions) */
 
 //Poisson probability mass function
-double Poisson_pmf(int nbr_to_observe, double expected_value) {
+double Poisson_pmf(int nbr_to_observe, float expected_value) {
 	double prob;
 	prob = (exp(-expected_value)*pow(expected_value,nbr_to_observe))/(factorial(nbr_to_observe));
 	return prob;

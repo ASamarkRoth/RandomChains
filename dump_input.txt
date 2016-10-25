@@ -1,4 +1,5 @@
 Lines starting with a '#' indicates the start of a new chain. OBS, the two first lines are not read in.
 Type (alpha=a, escape=e and fission=f) 	Beam ON (=1) or OFF (=0)	Time span (s) 
-#1
-f 0 2
+#2
+a 0 2
+f 0 10
