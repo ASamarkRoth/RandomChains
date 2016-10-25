@@ -72,7 +72,8 @@ With ROOT the user can plot the data for either a specific pixel or the total sp
 */
 
 
-RandomChains::RandomChains() {
+//RandomChains::RandomChains() {
+RandomChains::RandomChains(int pixels, int bins) : nbr_pixelss(pixels), nbr_bins(bins) {
 /* The constructor of class RandomChains. Here a complete run is controlled and executed. The following is done:
 	1. Lower and upper limits for the decay types and implants are set.
 	2. The run_type is given by the user.
@@ -86,6 +87,19 @@ RandomChains::RandomChains() {
 	
 	*/
 
+	cout << "nbr_pixels = " << nbr_pixels << " and nbr_bins = " << nbr_bins << endl;
+	//int (*data_beam_on) [nbr_pixelss] = new int[nbr_pixelss][nbr_bins];
+
+	data_beam_on.resize(nbr_pixelss);
+	for(int j = 0; j < nbr_pixels; j++) {
+		data_beam_on[j].resize(nbr_bins);
+	}
+	
+	data_beam_on[0][0] = 1;
+	cout << "Value = " << data_beam_on[0][0] << endl;
+	cout << "Size = " << data_beam_on[1].size() << endl;
+
+	ReadExperimentalData();
 	// 1. Lower and upper limits for the decay types and implants are set.
 	//Interval for accepted superheavy nuclei alpha decays (10*keV)
 	lower_limit_alphas = 900; upper_limit_alphas = 1100;
@@ -149,6 +163,33 @@ RandomChains::RandomChains() {
 	//9. The result is printed in the terminal window. 
 	print_result();
 		
+}
+
+void RandomChains::ReadExperimentalData() {
+	cout << "Experimental data is read in ... " << endl;
+
+	int bin = 0; int pixel = 0;
+	string val;
+
+	ifstream beam_on("beam_on.csv", ios::in);
+	ifstream rec_beam_on("rec_beam_on.csv", ios::in);
+	ifstream rec_beam_off("rec_beam_off.csv", ios::in);
+
+	while(getline(beam_on, val, ',')) {
+		//cout << "bin = " << bin << " val = " << val << endl;
+		if(bin%nbr_bins==0 && bin > 0) {
+			bin = 0;
+			pixel++;
+			cout << "pixel = " << pixel << endl;
+		}
+		data_beam_on[pixel][bin] = stoi(val);
+		bin++;
+	}
+
+	//cout << "Nbr of pixels = " << data_beam_on.size() << endl;
+	//cout << "bin = " << bin << endl;
+
+
 }
 
 RandomChains::~RandomChains() {
@@ -770,7 +811,7 @@ hist_on->SetTitle(title);
 //The main function is required for c++ compilation
 int main() {
 
-	RandomChains* RC = new RandomChains();
+	RandomChains* RC = new RandomChains(1024, 4096);
 	RC->plot_spectra();
 	return 0;
 }

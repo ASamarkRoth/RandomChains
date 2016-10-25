@@ -9,10 +9,13 @@
 using namespace std;
 
 
+//template <unsigned const int nbr_pixelss, unsigned const int nbr_bins>
 class RandomChains {
 	private:
 		/* Here the number of pixels is set!!!!! */
 		static const int nbr_pixels = 1024;
+		const int nbr_pixelss; 
+		const int nbr_bins;
 		
 		int run_type;
 		double experiment_time;
@@ -30,6 +33,11 @@ class RandomChains {
 		TH1F* h_energy_pixel_reconstructed_beam_off[nbr_pixels];
 		TH1F* h_energy_pixel_reconstructed_beam_on[nbr_pixels];
 		TH1F* h_energy_pixel_beam_on[nbr_pixels];
+
+		//int* data_beam_on;
+		vector<vector<int>> data_beam_on;
+		vector<vector<int>> data_reconstructed_beam_on;
+		vector<vector<int>> data_reconstructed_beam_off;
 
 		//pixels with fissions
 		double fissions_pixels[nbr_pixels];
@@ -72,7 +80,9 @@ class RandomChains {
 		void rate_calc(char type, int beam);
 
 	public:
-		RandomChains();
+		RandomChains(int pixels, int bins);
+		//RandomChains();
+		void ReadExperimentalData();
 		~RandomChains();
 		void print_result();
 		void print_test_result();

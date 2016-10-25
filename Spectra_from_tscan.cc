@@ -120,7 +120,8 @@ Int_t n = 0;
 Int_t l = 0;
 Int_t m = 0; 
 
-ofstream beam_on("beam_on.csv");
+ofstream beam_on("beam_on.csv", ofstream::out | ofstream::trunc);
+
 //beam_on.open();
 while (on>>temp){
 if(m%4096==0 && m > 0) 
