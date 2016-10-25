@@ -32,7 +32,7 @@ class RandomChains {
 		TH1F* h_energy_pixel_beam_on[nbr_pixels];
 
 		//pixels with fissions
-		long double fissions_pixels[nbr_pixels];
+		double fissions_pixels[nbr_pixels];
 
 		//Number of implants for every pixel
 		int nbr_implants[nbr_pixels];
@@ -41,11 +41,11 @@ class RandomChains {
 		vector<int> chain_length;
 		vector<int> beam_status;
 		vector<char> decay_type;
-		vector<float> time_span;
+		vector<double> time_span;
 
 		//Background rates and expected number of random chains per pixel
-		vector<array<long double, nbr_pixels>> rate;
-		vector<long double> nbr_expected_random_chains;
+		vector<array<double, nbr_pixels>> rate;
+		vector<double> nbr_expected_random_chains;
 
 		//Help variables to generate the test data and for verification
 		int eon;
@@ -84,7 +84,7 @@ class RandomChains {
 };
 
 /* Mathematical functions (non-member) */
-double Poisson_pmf(int nbr_to_observe, float expected_value);
+double Poisson_pmf(int nbr_to_observe, double expected_value);
 
 int factorial(int k);
 

@@ -119,6 +119,9 @@ Int_t temp = 0;
 Int_t n = 0;
 Int_t l = 0;
 Int_t m = 0; 
+
+ofstream beam_on("beam_on.csv");
+//beam_on.open();
 while (on>>temp){
 if(m%4096==0 && m > 0) 
 {
@@ -128,11 +131,13 @@ m=0;
 }
 h_energy_pixel_on[n]->SetBinContent(m,temp);
 h_energy_pixel_on_tot->AddBinContent(m,temp);
+beam_on << temp <<",";
 m++; 
 l++;
 }
 //cout << "l is " << l << endl;
 //cout << "temp is " << temp << endl;
+beam_on.close();
 
 l=0;
 n=0;
@@ -155,6 +160,7 @@ l++;
 l=0;
 n=0;
 m=0; 
+ofstream beam_recon("rec_beam_on.csv");
 while (recon>>temp){
 if(m%4096==0 && m > 0) 
 {
@@ -164,13 +170,16 @@ m=0;
 }
 h_energy_pixel_recon[n]->SetBinContent(m,temp);
 h_energy_pixel_recon_tot->AddBinContent(m,temp);
+beam_recon << temp << ",";
 m++; 
 l++;
 }
+beam_recon.close();
 
 l=0;
 n=0;
 m=0; 
+ofstream beam_recoff("rec_beam_off.csv");
 while (recoff>>temp){
 if(m%4096==0 && m > 0) 
 {
@@ -180,6 +189,7 @@ m=0;
 }
 h_energy_pixel_recoff[n]->SetBinContent(m,temp);
 h_energy_pixel_recoff_tot->AddBinContent(m,temp);
+beam_recoff << temp << ",";
 m++; 
 l++;
 }

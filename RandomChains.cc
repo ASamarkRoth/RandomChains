@@ -519,7 +519,7 @@ void RandomChains::calculate_rates() {
 	/*This method calculates the rates in every pixel for the specific decay types, one decay at a time.
 
 	Through this method the following member data is initialised:
-		vector<array<long double, nbr_pixels>> rate;
+		vector<array<double, nbr_pixels>> rate;
 	
 	*/
 
@@ -538,7 +538,7 @@ void RandomChains::rate_calc(char type, int beam) {
 	"int beam"=beam status, i.e. 1/0
 
 	Through this method the following member data is modified:
-		vector<array<long double, nbr_pixels>> rate;
+		vector<array<double, nbr_pixels>> rate;
 		
 	*/
 
@@ -548,7 +548,7 @@ void RandomChains::rate_calc(char type, int beam) {
 	if(beam) hist = h_energy_pixel_reconstructed_beam_on;
 	else hist = h_energy_pixel_reconstructed_beam_off;
 
-	array<long double, nbr_pixels> rate_temp;
+	array<double, nbr_pixels> rate_temp;
 	
 	//Based on the decay type, the upper and lower bin limits are set
 	int lower_limit, upper_limit;
@@ -562,7 +562,7 @@ void RandomChains::rate_calc(char type, int beam) {
 	}
 	else if(type == 'f') {
 		for(int i = 0; i < nbr_pixels; i++) {
-			rate_temp[i] = (long double)fissions_pixels[i]/experiment_time;
+			rate_temp[i] = (double)fissions_pixels[i]/experiment_time;
 		}
 		rate.push_back(rate_temp);
 		return;
@@ -578,7 +578,7 @@ void RandomChains::rate_calc(char type, int beam) {
 		for(int k = lower_limit; k < upper_limit; k++) {
 			acc_counts += hist[i]->GetBinContent(k);
 		}
-		rate_temp[i] = (long double) acc_counts/experiment_time;
+		rate_temp[i] = (double) acc_counts/experiment_time;
 	}
 	/*
 	for(auto j = 0; j < nbr_pixels; j++) {
@@ -652,10 +652,6 @@ void RandomChains::print_result() {
 		cout << "For chain " << j+1 << ": " << nbr_expected_random_chains.at(j) << endl;
 	}
 	if(run_type == 2) print_test_result();
-
-	for(int j = 0; j<nbr_pixels; j++) {
-		cout << "For pixel " << j << " nbr_implants = " << nbr_implants[j] << endl;
-	}
 
 }
 
@@ -786,8 +782,8 @@ void run_main() {
 
 /* Mathematical functions (non-member functions) */
 
-//Poisson probability mass function
-double Poisson_pmf(int nbr_to_observe, float expected_value) {
+//Poisson probability mass function (For UF:s float expected value)
+double Poisson_pmf(int nbr_to_observe, double expected_value) {
 	double prob;
 	prob = (exp(-expected_value)*pow(expected_value,nbr_to_observe))/(factorial(nbr_to_observe));
 	return prob;
