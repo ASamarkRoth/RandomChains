@@ -73,7 +73,7 @@ With ROOT the user can plot the data for either a specific pixel or the total sp
 
 
 //RandomChains::RandomChains() {
-RandomChains::RandomChains(int pixels, int bins) : nbr_pixelss(pixels), nbr_bins(bins) {
+RandomChains::RandomChains(int pixels = 1024, int bins = 4096, string folder="Lund_data") : nbr_pixelss(pixels), nbr_bins(bins) {
 /* The constructor of class RandomChains. Here a complete run is controlled and executed. The following is done:
 	1. Lower and upper limits for the decay types and implants are set.
 	2. The run_type is given by the user.
@@ -87,17 +87,7 @@ RandomChains::RandomChains(int pixels, int bins) : nbr_pixelss(pixels), nbr_bins
 	
 	*/
 
-	cout << "nbr_pixels = " << nbr_pixels << " and nbr_bins = " << nbr_bins << endl;
-	//int (*data_beam_on) [nbr_pixelss] = new int[nbr_pixelss][nbr_bins];
-
-	data_beam_on.resize(nbr_pixelss);
-	for(int j = 0; j < nbr_pixels; j++) {
-		data_beam_on[j].resize(nbr_bins);
-	}
-	
-	data_beam_on[0][0] = 1;
-	cout << "Value = " << data_beam_on[0][0] << endl;
-	cout << "Size = " << data_beam_on[1].size() << endl;
+	folder_data = folder + "/";
 
 	ReadExperimentalData();
 	// 1. Lower and upper limits for the decay types and implants are set.
@@ -109,15 +99,18 @@ RandomChains::RandomChains(int pixels, int bins) : nbr_pixelss(pixels), nbr_bins
 
 	//Interval for implanted nuclei with beam = ON (10*keV)
 	lower_limit_implants = 1100; upper_limit_implants = 1800;
+		
+}
 
+void RandomChains::Run() {
 	//2. The run_type is given by the user.
 	Bool_t valid_input = kFALSE;
 
 	while(!valid_input) {
 		cout << "What type of run? <0/1/2> \n" << 
 			"	0: Reproduce article numbers (no input required) \n "<<
-			"	1: User customised input on Lund experimental data \n" << 
-			"	2: Test the program on trivial data (no input required) " << endl;
+			"	1: User customised input \n" << 
+			"	(2: Test the program on trivial data (no input required)) " << endl;
 		cin >> run_type;
 
 		switch(run_type) {
@@ -162,33 +155,71 @@ RandomChains::RandomChains(int pixels, int bins) : nbr_pixelss(pixels), nbr_bins
 
 	//9. The result is printed in the terminal window. 
 	print_result();
-		
+
 }
 
 void RandomChains::ReadExperimentalData() {
-	cout << "Experimental data is read in ... " << endl;
+	cout << "Reading experimental data from the relative path: " << folder_data << endl;
 
+	data_beam_on.resize(nbr_pixelss);
+	data_reconstructed_beam_on.resize(nbr_pixelss);
+	data_reconstructed_beam_off.resize(nbr_pixelss);
+	for(int j = 0; j < nbr_pixels; j++) {
+		data_beam_on[j].resize(nbr_bins);
+		data_reconstructed_beam_on[j].resize(nbr_bins);
+		data_reconstructed_beam_off[j].resize(nbr_bins);
+	}
+
+	string read_file;
+
+	read_file = "beam_on.csv";
+	read_exp_file(read_file);
+
+	read_file = "rec_beam_on.csv";
+	read_exp_file(read_file);
+
+	read_file = "rec_beam_off.csv";
+	read_exp_file(read_file);
+}
+
+void RandomChains::read_exp_file(string read_file) {
 	int bin = 0; int pixel = 0;
 	string val;
 
-	ifstream beam_on("beam_on.csv", ios::in);
-	ifstream rec_beam_on("rec_beam_on.csv", ios::in);
-	ifstream rec_beam_off("rec_beam_off.csv", ios::in);
+	ifstream ifile_stream(folder_data + read_file, ios::in);
 
-	while(getline(beam_on, val, ',')) {
+	if(!ifile_stream) {
+		cout << "File \"" << read_file << "\" was not found " << endl;
+		if(read_file != "beam_on.csv") {
+			cout << "File \"" << read_file << "\" is essential for the analysis. Please add this file! " << endl;
+			abort();
+		}
+		else if (read_file == "beam_on.csv") {
+			cout << "OBS: The reconstructed data will be used instead of pure beam ON data!" << endl;
+			return;
+		}
+	}
+
+	cout << "Reading file " << read_file << endl;
+	while(getline(ifile_stream, val, ',')) {
 		//cout << "bin = " << bin << " val = " << val << endl;
 		if(bin%nbr_bins==0 && bin > 0) {
 			bin = 0;
 			pixel++;
-			cout << "pixel = " << pixel << endl;
+			//cout << "pixel = " << pixel << endl;
 		}
 		data_beam_on[pixel][bin] = stoi(val);
 		bin++;
 	}
 
-	//cout << "Nbr of pixels = " << data_beam_on.size() << endl;
-	//cout << "bin = " << bin << endl;
-
+	if(bin%nbr_bins == 0 && (pixel+1)%nbr_pixels == 0) {
+		cout << "The file was successfully read " << endl;
+	}
+	else {
+		cout << "Something wrong with the read in ... . The following might hint on what is wrong: " << endl;
+			cout << "Number of pixels read in was " << pixel+1 << endl;
+			cout << " and number of bins for the last pixel was " << bin << endl;
+	}
 
 }
 
@@ -505,8 +536,14 @@ void RandomChains::set_chains_from_input_file() {
 			chain_length.push_back(stoi(number));
 		}
 		else {
-			ss = stringstream(str);
+			ss.str(string());
+			ss.clear();
+			ss.str(str);
+			/*
+			cout << "str = " << str << endl;
 			ss >> type >> beam >> time;
+			cout << "type = " << type << " beam = " << beam << " and time = " << time << endl;
+			*/
 			decay_type.push_back(type);
 			beam_status.push_back(beam);
 			time_span.push_back(time);
@@ -812,6 +849,7 @@ hist_on->SetTitle(title);
 int main() {
 
 	RandomChains* RC = new RandomChains(1024, 4096);
+	RC->Run();
 	RC->plot_spectra();
 	return 0;
 }

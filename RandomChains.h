@@ -16,6 +16,8 @@ class RandomChains {
 		static const int nbr_pixels = 1024;
 		const int nbr_pixelss; 
 		const int nbr_bins;
+
+		string folder_data;
 		
 		int run_type;
 		double experiment_time;
@@ -67,6 +69,7 @@ class RandomChains {
 		
 		char cname[64], ctitle[64];
 
+		void read_exp_file(string file_name);
 		void prepare_data(int run_type);
 		void generate_test_data();
 		void read_experimental_data();
@@ -80,9 +83,10 @@ class RandomChains {
 		void rate_calc(char type, int beam);
 
 	public:
-		RandomChains(int pixels, int bins);
+		RandomChains(int pixels, int bins, string folder_data);
 		//RandomChains();
 		void ReadExperimentalData();
+		void Run();
 		~RandomChains();
 		void print_result();
 		void print_test_result();

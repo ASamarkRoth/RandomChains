@@ -1,7 +1,9 @@
-CC=g++
+CC=g++ -std=gnu++11
 CFLAGS=-g -c -Wall
-LIBDIRS= `root-config --cflags --libs`
-INCLUDES= -L${ROOTSYS}/lib 
+INCLUDES=`root-config --cflags`
+LIBDIRS= `root-config --libs --glibs`
+ROOTLIBS='-lRooFit -lHtml -lMinuit -lRooFitCore -lRooStats -lHistFactory'
+LIBRARY= -L ${ROOTSYS}/lib 
 LDFLAGS=
 SOURCES=RandomChains.cc 
 DEPS=RandomChains.h Style.code
@@ -13,10 +15,10 @@ EXECUTABLE=run_file
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) $(DEPS) 
-	$(CC) $(LIBDIRS) $(INCLUDES) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) -o $@ $(OBJECTS) $(LIBDIRS)
 
 .cc.o:
-	$(CC) $(CFLAGS) $(LIBDIRS) $(INCLUDES) $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 	#$(CC) $(CFLAGS) $< -o $@
 
 #Tells make not to confuse possible clean and help files with the targets with the same names
