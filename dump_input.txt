@@ -1,4 +1,7 @@
-Lines starting with a '#' indicates the start of a new chain. OBS, the two first lines are not read in.
+Lines starting with a '#' indicates the start of a new chain. The 2nd and 4th lines are read in, here the experimental time and the bin limits for the different signal types are given. 
+Experiment_time: 1.433e+06
+alpha_low alpha_up escape_low escapes_up implants_low implants_up
+900 1100 0 400 1100 1800
 Type (alpha=a, escape=e and fission=f) 	Beam ON (=1) or OFF (=0)	Time span (s) 
 #2
 a 0 2

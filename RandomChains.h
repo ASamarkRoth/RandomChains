@@ -13,14 +13,15 @@ using namespace std;
 class RandomChains {
 	private:
 		/* Here the number of pixels is set!!!!! */
-		static const int nbr_pixels = 1024;
-		const int nbr_pixelss; 
+		const int nbr_pixels; 
 		const int nbr_bins;
 
 		string folder_data;
 		
 		int run_type;
 		double experiment_time;
+
+		bool pure_beam = true;
 
 		//bin limits for the different decay types
 		int lower_limit_alphas, upper_limit_alphas;
@@ -32,9 +33,11 @@ class RandomChains {
 		TH1F* h_energy_reconstructed_beam_on_tot;
 
 		//Spectrum for every pixel, beam ON/OFF
+		/*
 		TH1F* h_energy_pixel_reconstructed_beam_off[nbr_pixels];
 		TH1F* h_energy_pixel_reconstructed_beam_on[nbr_pixels];
 		TH1F* h_energy_pixel_beam_on[nbr_pixels];
+		*/
 
 		//int* data_beam_on;
 		vector<vector<int>> data_beam_on;
@@ -42,10 +45,10 @@ class RandomChains {
 		vector<vector<int>> data_reconstructed_beam_off;
 
 		//pixels with fissions
-		double fissions_pixels[nbr_pixels];
+		vector<double> fissions_pixels;
 
 		//Number of implants for every pixel
-		int nbr_implants[nbr_pixels];
+		vector<int> nbr_implants;
 
 		//Chain/chains characteristics
 		vector<int> chain_length;
@@ -54,7 +57,7 @@ class RandomChains {
 		vector<double> time_span;
 
 		//Background rates and expected number of random chains per pixel
-		vector<array<double, nbr_pixels>> rate;
+		vector< vector<double> > rate;
 		vector<double> nbr_expected_random_chains;
 
 		//Help variables to generate the test data and for verification
@@ -90,7 +93,7 @@ class RandomChains {
 		~RandomChains();
 		void print_result();
 		void print_test_result();
-		void plot_spectra();
+		//void plot_spectra();
 		void run_main();
 		void dump_input_to_file();
 		
@@ -98,7 +101,7 @@ class RandomChains {
 };
 
 /* Mathematical functions (non-member) */
-double Poisson_pmf(int nbr_to_observe, double expected_value);
+double Poisson_pmf(int nbr_to_observe, float expected_value);
 
 int factorial(int k);
 

@@ -73,7 +73,7 @@ With ROOT the user can plot the data for either a specific pixel or the total sp
 
 
 //RandomChains::RandomChains() {
-RandomChains::RandomChains(int pixels = 1024, int bins = 4096, string folder="Lund_data") : nbr_pixelss(pixels), nbr_bins(bins) {
+RandomChains::RandomChains(int pixels = 1024, int bins = 4096, string folder="Lund_data") : nbr_pixels(pixels), nbr_bins(bins) {
 /* The constructor of class RandomChains. Here a complete run is controlled and executed. The following is done:
 	1. Lower and upper limits for the decay types and implants are set.
 	2. The run_type is given by the user.
@@ -90,21 +90,13 @@ RandomChains::RandomChains(int pixels = 1024, int bins = 4096, string folder="Lu
 	folder_data = folder + "/";
 
 	ReadExperimentalData();
-	// 1. Lower and upper limits for the decay types and implants are set.
-	//Interval for accepted superheavy nuclei alpha decays (10*keV)
-	lower_limit_alphas = 900; upper_limit_alphas = 1100;
 
-	//Interval for energy deposit of alphas that escapes the implantation detector (10*keV)
-	lower_limit_escapes = 0; upper_limit_escapes = 400;
-
-	//Interval for implanted nuclei with beam = ON (10*keV)
-	lower_limit_implants = 1100; upper_limit_implants = 1800;
 		
 }
 
 void RandomChains::Run() {
 	//2. The run_type is given by the user.
-	Bool_t valid_input = kFALSE;
+	bool valid_input = false;
 
 	while(!valid_input) {
 		cout << "What type of run? <0/1/2> \n" << 
@@ -117,26 +109,22 @@ void RandomChains::Run() {
 		//3. The experimental data is read in or the test data is generated with the method "prepare_data()".
 			case 0 : 
 				cout << "You have chosen: \"Reproduce article numbers\"" << endl;
-				prepare_data(0);
-				valid_input = kTRUE;
-				experiment_time = 1433000;
+				valid_input = true;
 				break;
 			case 1 : 
 				cout << "You have chosen: \"user customised input\" " << endl;
-				prepare_data(1);
-				valid_input = kTRUE;
-				experiment_time = 1433000;
+				valid_input = true;
 				break;
 			case 2 : 
 				cout << "You have chosen: \"test run\"" << endl;
-				prepare_data(2);
-				valid_input = kTRUE;
-				experiment_time = 1000000;
+				pure_beam = false;
+				valid_input = true;
 				break;
 			default : 
 				cout << "Please insert a number, 0, 1 or 2" << endl;
 		}
 	}
+	
 
 	//4. The chain/chains characteristics are set.
 	set_chains(run_type);
@@ -161,9 +149,11 @@ void RandomChains::Run() {
 void RandomChains::ReadExperimentalData() {
 	cout << "Reading experimental data from the relative path: " << folder_data << endl;
 
-	data_beam_on.resize(nbr_pixelss);
-	data_reconstructed_beam_on.resize(nbr_pixelss);
-	data_reconstructed_beam_off.resize(nbr_pixelss);
+	data_beam_on.resize(nbr_pixels);
+	data_reconstructed_beam_on.resize(nbr_pixels);
+	data_reconstructed_beam_off.resize(nbr_pixels);
+	fissions_pixels.resize(nbr_pixels);
+	nbr_implants.resize(nbr_pixels);
 	for(int j = 0; j < nbr_pixels; j++) {
 		data_beam_on[j].resize(nbr_bins);
 		data_reconstructed_beam_on[j].resize(nbr_bins);
@@ -180,6 +170,32 @@ void RandomChains::ReadExperimentalData() {
 
 	read_file = "rec_beam_off.csv";
 	read_exp_file(read_file);
+	
+	//The fission data are read in here and treated differently.
+	for(int i = 0; i < nbr_pixels; i++) {
+		fissions_pixels[i] = 0; 
+	}
+	int temp_value;
+	int nbr_of_fissions = 0;
+	ifstream input("pixels_with_fissions.txt",ios::in);
+	input>>temp_value;
+	while (input){
+		/*
+		cout << "Temp_value = " << temp_value << endl;
+		cout << "Temp_value id = " << typeid(temp_value).name() << endl;
+		*/
+		fissions_pixels[temp_value] += 1;
+		nbr_of_fissions++;
+		input>>temp_value;
+	}
+	//cout << "Total number of fissions are: " << nbr_of_fissions << endl;
+
+	//If the number of fissions in a pixel is 0 then it is set to the average over the complete implantation detector. 
+	for(int i = 0; i < nbr_pixels; i++){
+		if(fissions_pixels[i] == 0){
+			fissions_pixels[i] = (double)nbr_of_fissions/nbr_pixels;    
+		} 
+	}
 }
 
 void RandomChains::read_exp_file(string read_file) {
@@ -196,6 +212,7 @@ void RandomChains::read_exp_file(string read_file) {
 		}
 		else if (read_file == "beam_on.csv") {
 			cout << "OBS: The reconstructed data will be used instead of pure beam ON data!" << endl;
+			pure_beam = false;
 			return;
 		}
 	}
@@ -208,7 +225,10 @@ void RandomChains::read_exp_file(string read_file) {
 			pixel++;
 			//cout << "pixel = " << pixel << endl;
 		}
-		data_beam_on[pixel][bin] = stoi(val);
+		if(read_file == "beam_on.csv") data_beam_on[pixel][bin] = stoi(val);
+		else if(read_file == "rec_beam_on.csv") data_reconstructed_beam_on[pixel][bin] = stoi(val);
+		else if(read_file == "rec_beam_off.csv") data_reconstructed_beam_off[pixel][bin] = stoi(val);
+
 		bin++;
 	}
 
@@ -238,10 +258,6 @@ void RandomChains::prepare_data(int run_type) {
 		cout << "Generating test data " << endl;
 		generate_test_data();
 	}
-	else {
-		cout << "Reading experimental data ..." << endl;
-		read_experimental_data();
-	}
 }
 
 void RandomChains::generate_test_data() {
@@ -264,61 +280,46 @@ void RandomChains::generate_test_data() {
 		int fissions;
 	*/
 
+	
+	//Clearing the data
 	for(int k = 0; k < nbr_pixels; k++) {
-		sprintf(ctitle,"Energy, Beam ON, pixel %d (TESTDATA)",k);
-		sprintf(cname,"h_energy_pixel_reconstructed_ON_%d",k);
-		h_energy_pixel_reconstructed_beam_on[k] = new TH1F(cname,ctitle, 4096, 0, 40.96);
-
-		sprintf(ctitle,"Energy, Beam OFF, pixel %d (TESTDATA)",k);
-		sprintf(cname,"h_energy_pixel_reconstructed_OFF_%d",k);
-		h_energy_pixel_reconstructed_beam_off[k] = new TH1F(cname,ctitle, 4096, 0, 40.96);
-
-		//Setting the values to insert in the test spectra:
-		eon = 4;
-		eoff = 3;
-		non = 3;
-		noff = 2;
-		aon = 2;
-		aoff = 1;
-		imps = 100;
-		fissions = 2;
-
-		for(int i = lower_limit_escapes; i < upper_limit_alphas; i++) {
-			if(i < upper_limit_escapes) {
-				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, eon);
-				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, eoff);
-			}
-			else if(i >= upper_limit_escapes && i < lower_limit_alphas) {
-				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, non);
-				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, noff);
-			}
-			else {
-				h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(i, aon);
-				h_energy_pixel_reconstructed_beam_off[k]->SetBinContent(i, aoff);
-			}
+		for(int i = 0; i < nbr_bins; i++) {
+			data_reconstructed_beam_on[k][i] = 0;
+			data_reconstructed_beam_off[k][i] = 0;
 		}
-		
-		h_energy_pixel_reconstructed_beam_on[k]->SetBinContent(1500, imps);
-		fissions_pixels[k] = fissions;
 	}
 
+	//Setting the values to insert in the test spectra:
+	eon = 4;
+	eoff = 3;
+	non = 3;
+	noff = 2;
+	aon = 2;
+	aoff = 1;
+	imps = 100;
+	fissions = 2;
 
-	sprintf(ctitle,"Energy Total, Beam ON, (TESTDATA)");
-	sprintf(cname,"h_energy_pixel_reconstructed_ON_tot");
+	for(int k = 0; k < nbr_pixels; k++) {
+		for(int i = lower_limit_escapes; i < upper_limit_alphas; i++) {
+			if(i < upper_limit_escapes) {
+				data_reconstructed_beam_on[k][i] = eon;
+				data_reconstructed_beam_off[k][i] = eoff;
+			}
+			else if(i >= upper_limit_escapes && i < lower_limit_alphas) {
+				data_reconstructed_beam_on[k][i] = non;
+				data_reconstructed_beam_off[k][i] = noff;
+			}
+			else {
+				data_reconstructed_beam_on[k][i] = aon;
+				data_reconstructed_beam_off[k][i] = aoff;
+			}
+		}
 
-	h_energy_reconstructed_beam_on_tot = (TH1F*) h_energy_pixel_reconstructed_beam_on[0]->Clone(cname);
-
-	//The total spectrum is only for plotting purposes, therefore the scaling
-	h_energy_reconstructed_beam_on_tot->Scale(nbr_pixels);
-	h_energy_reconstructed_beam_on_tot->SetTitle(ctitle);
-
-	sprintf(ctitle,"Energy Total, Beam OFF, (TESTDATA)");
-	sprintf(cname,"h_energy_pixel_reconstructed_OFF_tot");
-
-	h_energy_reconstructed_beam_off_tot = (TH1F*) h_energy_pixel_reconstructed_beam_off[0]->Clone(cname);
-
-	h_energy_reconstructed_beam_off_tot->Scale(nbr_pixels);
-	h_energy_reconstructed_beam_off_tot->SetTitle(ctitle);
+		int middle = lower_limit_implants + floor((upper_limit_implants - lower_limit_implants)/2);
+		data_reconstructed_beam_on[k][middle] = imps;
+		
+		fissions_pixels[k] = fissions;
+	}
 
 }
 
@@ -337,6 +338,7 @@ void RandomChains::read_experimental_data() {
 	
 
 	//Prepare/read in root spectra
+	/*
 	TFile  *file = new TFile("Spectra.root");
 
 	h_energy_reconstructed_beam_off_tot = (TH1F*)file->Get("h_energy_pixel_recoff_tot"); 
@@ -360,29 +362,22 @@ void RandomChains::read_experimental_data() {
 	for(int i = 0; i < nbr_pixels; i++) {
 		fissions_pixels[i] = 0; 
 	}
-	
-	//The fission data are read in here and treated differently.
-	int temp_value;
-	int nbr_of_fissions = 0;
-	ifstream input("pixels_with_fissions.txt",ios::in);
-		input>>temp_value;
-		while (input){
-			/*
-			cout << "Temp_value = " << temp_value << endl;
-			cout << "Temp_value id = " << typeid(temp_value).name() << endl;
-			*/
-			fissions_pixels[temp_value] += 1;
-			nbr_of_fissions++;
-			input>>temp_value;
-		}
-		//cout << "Total number of fissions are: " << nbr_of_fissions << endl;
+	cout << "\n";
+	// 1. Lower and upper limits for the decay types and implants are set.
+	//Interval for accepted superheavy nuclei alpha decays (10*keV)
+	lower_limit_alphas = 900; upper_limit_alphas = 1100;
+	cout << "Interval in bins for accepted superheavy nuclei alpha decays (For the Lund data a bin is 10*keV): " << lower_limit_alphas << " < Bin_alpha < " << upper_limit_alphas << endl; 
 
-		//If the number of fissions in a pixel is 0 then it is set to the average over the complete implantation detector. 
-		for(int i = 0; i < nbr_pixels; i++){
-			if(fissions_pixels[i] == 0){
-				fissions_pixels[i] = (double)nbr_of_fissions/nbr_pixels;    
-			} 
-		}
+	//Interval for energy deposit of alphas that escapes the implantation detector (10*keV)
+	lower_limit_escapes = 0; upper_limit_escapes = 400;
+	cout << "Interval in bins for energy deposit of alphas that escapes the implantation detector and could not be reconstructed (For the Lund data a bin is 10*keV): " << lower_limit_escapes << " < Bin_escapes < " << upper_limit_escapes << endl; 
+
+	//Interval for implanted nuclei with beam = ON (10*keV)
+	lower_limit_implants = 1100; upper_limit_implants = 1800;
+	cout << "Interval in bins for implanted nuclei with beam = ON (For the Lund data a bin is 10*keV): " << lower_limit_implants << " < Bin_implants < " << upper_limit_implants << endl; 
+	cout << "\n";
+	*/
+	
 
 }
 
@@ -401,6 +396,7 @@ void RandomChains::set_chains(int input) {
 	if(input == 2) {
 		//In this method the test chains are set.
 		set_test_chains();
+		generate_test_data();
 		return;
 	}
 	else if(input == 0) {
@@ -408,10 +404,14 @@ void RandomChains::set_chains(int input) {
 		set_article_chains();
 		return;
 	}
+	else if(input == 1) {
+		set_chains_from_input_file();
+	}
 
 
+	/*
 	//First the user decides if he/she wants to read data from an input file
-	cout << "Read decay chains from input file? <y/n>. If no, you will need to insert details of your chain step by step. "  << endl;
+	cout << "What is the name of the input file?"  << endl;
 	char answer; 
 	cin >> answer; 
 
@@ -442,25 +442,38 @@ void RandomChains::set_chains(int input) {
 		cin >> itemp;
 		time_span.push_back(itemp);
 	}
+	*/
 
 }
 
 void RandomChains::set_test_chains() {
-	/*This method defines the test chains characteristics*/
+	/*This method defines the test chains characteristics and limits for the different signal types*/
 	//Do not modify these numbers!!!
 	chain_length = {5};
 	decay_type = {'a', 'e', 'a', 'e', 'f'};
 	beam_status = {1, 0, 0, 1, 1};
 	time_span = {1, 2, 3, 4, 5};
+
+	lower_limit_alphas = 900; upper_limit_alphas = 1100;
+	lower_limit_escapes = 0; upper_limit_escapes = 400;
+	lower_limit_implants = 1100; upper_limit_implants = 1800;
+
+	experiment_time = 1000000;
 }
 
 void RandomChains::set_article_chains() {
-	/*This method defines the article chains characteristics*/
+	/*This method defines the article chains characteristics and limits for the different signal types*/
 	//Do not modify these numbers!!!
 	chain_length = {2, 2, 3, 3, 3, 3, 3};
 	decay_type = {'a','f',  'e','f',  'a','a','f',  'a','a','f',  'a','a','f',  'a','a','f',  'e','e','f'};
 	beam_status = {0,0,  0,0,  1,0,0,  1,0,0,  0,0,0,  0,0,0,  0,1,0};
 	time_span = {2,10,  2,10,  2,10,50,  2,10,50,  2,10,50,  2,10,50, 2,10,50};
+
+	lower_limit_alphas = 900; upper_limit_alphas = 1100;
+	lower_limit_escapes = 0; upper_limit_escapes = 400;
+	lower_limit_implants = 1100; upper_limit_implants = 1800;
+
+	experiment_time = 1433000;
 }
 
 void RandomChains::dump_input_to_file() {
@@ -481,10 +494,16 @@ void RandomChains::dump_input_to_file() {
 	sprintf(out, "File %s was written ... ", output);
 	ofstream dump;
 	dump.open(output);
-	dump << "Lines starting with a '#' indicates the start of a new chain. OBS, the two first lines are not read in." << endl;
+	dump << "Lines starting with a '#' indicates the start of a new chain. The 2nd and 4th lines are read in, here the experimental time and the bin limits for the different signal types are given. The format is very important! " << endl;
+	dump << "Experiment_time(s): " << experiment_time << endl;
+	dump << "alpha_low alpha_up escape_low escapes_up implants_low implants_up" << endl;
+	dump << lower_limit_alphas <<" "<< upper_limit_alphas <<" "<< lower_limit_escapes <<" "<<upper_limit_escapes<<" "<<lower_limit_implants<<" "<<upper_limit_implants << endl;
 	dump << "Type (alpha=a, escape=e and fission=f) 	Beam ON (=1) or OFF (=0)	Time span (s) \n";
 	if(run_type == 0) {
-		cout << "Lines starting with a '#' indicates the start of a new chain. OBS, the two first lines are not read in." << endl;
+		cout << "Lines starting with a '#' indicates the start of a new chain. The 2nd and 4th lines are read in, here the experimental time and the bin limits for the different signal types are given. The format is very important! " << endl;
+		cout << "Experiment_time(s): " << experiment_time << endl;
+		cout << "alpha_low alpha_up escape_low escapes_up implants_low implants_up" << endl;
+		cout << lower_limit_alphas <<" "<< upper_limit_alphas <<" "<< lower_limit_escapes <<" "<<upper_limit_escapes<<" "<<lower_limit_implants<<" "<<upper_limit_implants << endl;
 		cout << "Type (alpha=a, escape=e and fission=f) 	Beam ON (=1) or OFF (=0)	Time span (s) \n";
 	}
 	int offset = 0;
@@ -526,11 +545,23 @@ void RandomChains::set_chains_from_input_file() {
 	cout << "The following was read in: " << endl;
 	while(getline(input_chains, str)) {
 		cout << str << endl;
-		if(chain_length.size() > 0) cout << "chain length = " << chain_length.at(0) << endl;
-		if(counter < 2) {
+		//if(chain_length.size() > 0) cout << "chain length = " << chain_length.at(0) << endl;
+		if(counter < 5) {
+			if(counter == 1) {
+				if(str.find_first_of(" ") != string::npos) {
+					experiment_time = stod(string(str.begin()+str.find_first_of(" "), str.end()));
+				}
+			}
+			if(counter == 3) {
+				ss.str(string());
+				ss.clear();
+				ss.str(str);
+				ss >> lower_limit_alphas >> upper_limit_alphas >> lower_limit_escapes >> upper_limit_escapes >>lower_limit_implants >> upper_limit_implants;
+			}			
 			counter++;
 			continue;
 		}
+
 		if(str[0] == '#') {
 			string number = string(str.begin()+1, str.end());
 			chain_length.push_back(stoi(number));
@@ -539,11 +570,7 @@ void RandomChains::set_chains_from_input_file() {
 			ss.str(string());
 			ss.clear();
 			ss.str(str);
-			/*
-			cout << "str = " << str << endl;
 			ss >> type >> beam >> time;
-			cout << "type = " << type << " beam = " << beam << " and time = " << time << endl;
-			*/
 			decay_type.push_back(type);
 			beam_status.push_back(beam);
 			time_span.push_back(time);
@@ -573,23 +600,18 @@ void RandomChains::calculate_implants() {
 	*/
 
 
-	TH1F** hist;
-	/*
-	if(h_energy_pixel_beam_on!=NULL) hist = h_energy_pixel_beam_on;
-	else hist = h_energy_pixel_reconstructed_beam_on;
-	*/
+	vector< vector<int> > data;
 
-	if(run_type == 1 || run_type == 0) hist = h_energy_pixel_beam_on;
-	else hist = h_energy_pixel_reconstructed_beam_on;
+	if(pure_beam) data = data_beam_on;
+	else data = data_reconstructed_beam_on;
 
 	for(int i = 0; i < nbr_pixels; i++) {
 		int acc_counts = 0; 
 		for(int k = lower_limit_implants; k < upper_limit_implants; k++) {
-			acc_counts += hist[i]->GetBinContent(k);
+			acc_counts += data[i][k];
 		}
 		nbr_implants[i] = acc_counts;
 	}
-
 
 }
 
@@ -622,11 +644,13 @@ void RandomChains::rate_calc(char type, int beam) {
 
 
 	//Based on the beam status the spectrum is determined
-	TH1F** hist;
-	if(beam) hist = h_energy_pixel_reconstructed_beam_on;
-	else hist = h_energy_pixel_reconstructed_beam_off;
+	vector< vector<int> > data;
+	if(beam) data = data_reconstructed_beam_on;
+	else data = data_reconstructed_beam_off;
 
-	array<double, nbr_pixels> rate_temp;
+
+	vector<double> rate_temp;
+	rate_temp.resize(nbr_pixels);
 	
 	//Based on the decay type, the upper and lower bin limits are set
 	int lower_limit, upper_limit;
@@ -654,15 +678,17 @@ void RandomChains::rate_calc(char type, int beam) {
 	for(int i = 0; i < nbr_pixels; i++) {
 		int acc_counts = 0;
 		for(int k = lower_limit; k < upper_limit; k++) {
-			acc_counts += hist[i]->GetBinContent(k);
+			acc_counts += data[i][k];
 		}
 		rate_temp[i] = (double) acc_counts/experiment_time;
 	}
+
 	/*
 	for(auto j = 0; j < nbr_pixels; j++) {
 		cout << "Rate at j = " << j << " is " << rate_temp[j] << endl;
 	}
 	*/
+
 	rate.push_back(rate_temp);
 }
 
@@ -679,7 +705,7 @@ void RandomChains::calculate_expected_nbr_random_chains() {
 
 	//looping decay chains
 	for(unsigned int j = 0; j < chain_length.size(); j++) {
-		double randoms_in_pixel[nbr_pixels] = {0};
+		vector<double> randoms_in_pixel(nbr_pixels,0.);
 
 		//looping decays
 		for(int l = offset; l < offset+chain_length.at(j); l++) {
@@ -724,7 +750,7 @@ void RandomChains::print_result() {
 	if(run_type == 2) cout << "These are the result of the TEST run: " << endl;
 	else cout << "These are the result of the run: " << endl;
 
-	cout << "The total number of expected random chains are: " << endl;
+	cout << "The total number of expected random chains of the same type as the given chain due to random fluctuations in the background are: " << endl;
 
 	for(unsigned int j = 0; j < nbr_expected_random_chains.size(); j++) {
 		cout << "For chain " << j+1 << ": " << nbr_expected_random_chains.at(j) << endl;
@@ -759,11 +785,12 @@ void RandomChains::print_test_result() {
 	
 }
 
-void RandomChains::plot_spectra() {
+//void RandomChains::plot_spectra() {
 	/*With this method the user can plot either pixel spectra or total spectrum, assumed that an object of RandomChains has been initialised.
 	*/
 
 //This code file contains styles set for the plotting
+/*
 #include "Style.code"
 
 	TH1F* hist_on;
@@ -844,13 +871,14 @@ hist_on->SetTitle(title);
 	leg->Draw();
 
 }
+*/
 
 //The main function is required for c++ compilation
 int main() {
 
 	RandomChains* RC = new RandomChains(1024, 4096);
 	RC->Run();
-	RC->plot_spectra();
+	//RC->plot_spectra();
 	return 0;
 }
 
@@ -862,7 +890,7 @@ void run_main() {
 /* Mathematical functions (non-member functions) */
 
 //Poisson probability mass function (For UF:s float expected value)
-double Poisson_pmf(int nbr_to_observe, double expected_value) {
+double Poisson_pmf(int nbr_to_observe, float expected_value) {
 	double prob;
 	prob = (exp(-expected_value)*pow(expected_value,nbr_to_observe))/(factorial(nbr_to_observe));
 	return prob;
