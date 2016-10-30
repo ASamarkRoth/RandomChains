@@ -1,12 +1,12 @@
 #include "RandomChains.h"
 
-
 /*From here the RandomChains computation is controlled. */
 int main() {
 
 	//This is how the default run is made (i.e. on Lund experimental data)
 	/*
 	RandomChains* RC = new RandomChains();
+	RC->SetDecayChains();
 	RC->Run();
 	*/
 
@@ -18,7 +18,8 @@ int main() {
 	
 	string chains_input_file = "dump_article.txt";
 	//Giving an input to the RandomChains::Run method relieves the user from giving any inputs during a run
-	RC_mod->Run(chains_input_file);
+	RC_mod->SetDecayChains(chains_input_file);
+	RC_mod->Run();
 	
 	return 0;
 }

@@ -5,22 +5,23 @@
 #include <string>
 #include <vector>
 
-
 using namespace std;
 
 
-//template <unsigned const int nbr_pixelss, unsigned const int nbr_bins>
 class RandomChains {
 	private:
-		/* Here the number of pixels is set!!!!! */
 		const int nbr_pixels; 
 		const int nbr_bins;
 
 		string folder_data;
 		
+		//Indicates the type of run (0,1 or 2)
 		int run_type;
+
+		//The duration of the experiment in s
 		double experiment_time;
 
+		//False if no pure beam ON spectra could be read in
 		bool pure_beam = true;
 
 		//bin limits for the different decay types
@@ -28,18 +29,7 @@ class RandomChains {
 		int lower_limit_escapes, upper_limit_escapes;
 		int lower_limit_implants, upper_limit_implants;
 
-		//Spectra, summed all pixels, beam ON/OFF
-		TH1F* h_energy_reconstructed_beam_off_tot;
-		TH1F* h_energy_reconstructed_beam_on_tot;
-
-		//Spectrum for every pixel, beam ON/OFF
-		/*
-		TH1F* h_energy_pixel_reconstructed_beam_off[nbr_pixels];
-		TH1F* h_energy_pixel_reconstructed_beam_on[nbr_pixels];
-		TH1F* h_energy_pixel_beam_on[nbr_pixels];
-		*/
-
-		//int* data_beam_on;
+		//The spectra are stored in these 2D vectors
 		vector<vector<int>> data_beam_on;
 		vector<vector<int>> data_reconstructed_beam_on;
 		vector<vector<int>> data_reconstructed_beam_off;
@@ -72,6 +62,7 @@ class RandomChains {
 		
 		char cname[64], ctitle[64];
 
+		//all methods are described in "RandomChains.cc"
 		void read_exp_file(string file_name);
 		void prepare_data(int run_type);
 		void generate_test_data();
@@ -87,13 +78,12 @@ class RandomChains {
 
 	public:
 		RandomChains(int pixels=1024, int bins=4096, string folder="Lund_data");
-		//RandomChains();
 		void ReadExperimentalData();
-		void Run(string input_file="");
+		void SetDecayChains(string input_chains="");
+		void Run();
 		~RandomChains();
 		void print_result();
 		void print_test_result();
-		//void plot_spectra();
 		void run_main();
 		void dump_input_to_file();
 		
@@ -104,6 +94,4 @@ class RandomChains {
 double Poisson_pmf(int nbr_to_observe, float expected_value);
 
 int factorial(int k);
-
-void insert_blank();
 
