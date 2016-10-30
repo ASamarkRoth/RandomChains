@@ -5,7 +5,7 @@ LIBDIRS= `root-config --libs --glibs`
 ROOTLIBS='-lRooFit -lHtml -lMinuit -lRooFitCore -lRooStats -lHistFactory'
 LIBRARY= -L ${ROOTSYS}/lib 
 LDFLAGS=
-SOURCES=RandomChains.cc 
+SOURCES=run_file.cc RandomChains.cc
 DEPS=RandomChains.h Style.code
 OBJECTS=$(SOURCES:.cc=.o)
 EXECUTABLE=run_file

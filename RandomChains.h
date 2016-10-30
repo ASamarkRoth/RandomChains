@@ -79,17 +79,17 @@ class RandomChains {
 		void calculate_implants();
 		void calculate_rates();
 		void calculate_expected_nbr_random_chains();
-		void set_chains(int run_type);
+		void set_chains(int run_type, string input_file);
 		void set_test_chains();
 		void set_article_chains();
-		void set_chains_from_input_file();
+		void set_chains_from_input_file(string input_file);
 		void rate_calc(char type, int beam);
 
 	public:
-		RandomChains(int pixels, int bins, string folder_data);
+		RandomChains(int pixels=1024, int bins=4096, string folder="Lund_data");
 		//RandomChains();
 		void ReadExperimentalData();
-		void Run();
+		void Run(string input_file="");
 		~RandomChains();
 		void print_result();
 		void print_test_result();

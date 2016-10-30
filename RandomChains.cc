@@ -94,9 +94,14 @@ RandomChains::RandomChains(int pixels = 1024, int bins = 4096, string folder="Lu
 		
 }
 
-void RandomChains::Run() {
+void RandomChains::Run(string input_file = "") {
 	//2. The run_type is given by the user.
 	bool valid_input = false;
+
+	if(!input_file.empty()) {
+		run_type = 1;
+		valid_input = true;
+	}
 
 	while(!valid_input) {
 		cout << "What type of run? <0/1/2> \n" << 
@@ -127,7 +132,7 @@ void RandomChains::Run() {
 	
 
 	//4. The chain/chains characteristics are set.
-	set_chains(run_type);
+	set_chains(run_type, input_file);
 
 	//5. The input data is dumped to a file.
 	dump_input_to_file();
@@ -171,31 +176,8 @@ void RandomChains::ReadExperimentalData() {
 	read_file = "rec_beam_off.csv";
 	read_exp_file(read_file);
 	
-	//The fission data are read in here and treated differently.
-	for(int i = 0; i < nbr_pixels; i++) {
-		fissions_pixels[i] = 0; 
-	}
-	int temp_value;
-	int nbr_of_fissions = 0;
-	ifstream input("pixels_with_fissions.txt",ios::in);
-	input>>temp_value;
-	while (input){
-		/*
-		cout << "Temp_value = " << temp_value << endl;
-		cout << "Temp_value id = " << typeid(temp_value).name() << endl;
-		*/
-		fissions_pixels[temp_value] += 1;
-		nbr_of_fissions++;
-		input>>temp_value;
-	}
-	//cout << "Total number of fissions are: " << nbr_of_fissions << endl;
-
-	//If the number of fissions in a pixel is 0 then it is set to the average over the complete implantation detector. 
-	for(int i = 0; i < nbr_pixels; i++){
-		if(fissions_pixels[i] == 0){
-			fissions_pixels[i] = (double)nbr_of_fissions/nbr_pixels;    
-		} 
-	}
+	read_file = "pixels_with_fissions.csv";
+	read_exp_file(read_file);
 }
 
 void RandomChains::read_exp_file(string read_file) {
@@ -205,7 +187,7 @@ void RandomChains::read_exp_file(string read_file) {
 	ifstream ifile_stream(folder_data + read_file, ios::in);
 
 	if(!ifile_stream) {
-		cout << "File \"" << read_file << "\" was not found " << endl;
+		cout << "File \"" << folder_data+read_file << "\" was not found " << endl;
 		if(read_file != "beam_on.csv") {
 			cout << "File \"" << read_file << "\" is essential for the analysis. Please add this file! " << endl;
 			abort();
@@ -217,7 +199,36 @@ void RandomChains::read_exp_file(string read_file) {
 		}
 	}
 
-	cout << "Reading file " << read_file << endl;
+	cout << "Reading file " << folder_data+read_file << endl;
+
+	//The fission data are read in here and treated differently.
+	if(read_file == "pixels_with_fissions.csv") {
+		for(int i = 0; i < nbr_pixels; i++) {
+			fissions_pixels[i] = 0; 
+		}
+		int nbr_of_fissions = 0;
+		while(getline(ifile_stream, val, ',')) {
+			//cout << "number = " << nbr_of_fissions << " fission val = " << val << " Val_empty = " << val.empty() << " ";
+			if(val.empty()) {
+				cout << "Breaking..." << endl;
+			       	break;
+			}
+			fissions_pixels[stoi(val)] += 1;
+			nbr_of_fissions++;
+		}
+		cout << "Total number of fissions are: " << nbr_of_fissions << endl;
+
+		//If the number of fissions in a pixel is 0 then it is set to the average over the complete implantation detector. 
+		for(int i = 0; i < nbr_pixels; i++){
+			if(fissions_pixels[i] == 0){
+				fissions_pixels[i] = (double)nbr_of_fissions/nbr_pixels;    
+			} 
+		}
+
+		return;
+	}
+
+
 	while(getline(ifile_stream, val, ',')) {
 		//cout << "bin = " << bin << " val = " << val << endl;
 		if(bin%nbr_bins==0 && bin > 0) {
@@ -381,7 +392,7 @@ void RandomChains::read_experimental_data() {
 
 }
 
-void RandomChains::set_chains(int input) {
+void RandomChains::set_chains(int run_type, string input_file) {
 	/* The chain/chains characteristics are set. 
 	The input argument "int input" is the run_type and which decay chains are to be set are determined on the basis of this value.
 
@@ -393,19 +404,19 @@ void RandomChains::set_chains(int input) {
 	*/
 
 
-	if(input == 2) {
+	if(run_type == 2) {
 		//In this method the test chains are set.
 		set_test_chains();
 		generate_test_data();
 		return;
 	}
-	else if(input == 0) {
+	else if(run_type == 0) {
 		//In this method the article chains are set. 
 		set_article_chains();
 		return;
 	}
-	else if(input == 1) {
-		set_chains_from_input_file();
+	else if(run_type == 1) {
+		set_chains_from_input_file(input_file);
 	}
 
 
@@ -521,7 +532,7 @@ void RandomChains::dump_input_to_file() {
 	cout << out << endl;
 }
 
-void RandomChains::set_chains_from_input_file() {
+void RandomChains::set_chains_from_input_file(string input_file) {
 	/*This method is called when the user chooses to read in input from a file.
 
 	Through this method the following member data is initialised:
@@ -532,8 +543,12 @@ void RandomChains::set_chains_from_input_file() {
 	*/
 
 	string filename;
-	cout << "Enter full name of input file name: (file \"dump_input.txt\" should be available): ";
-	cin >> filename;
+
+	if(input_file.empty()) {
+		cout << "Enter full name of input file name: (file \"dump_input.txt\" should be available): ";
+		cin >> filename;
+	}
+	else filename = input_file;
 	ifstream input_chains(filename,ios::in);
 	if(!input_chains) cout << "Could not find file" << endl;
 	int beam;
@@ -872,20 +887,6 @@ hist_on->SetTitle(title);
 
 }
 */
-
-//The main function is required for c++ compilation
-int main() {
-
-	RandomChains* RC = new RandomChains(1024, 4096);
-	RC->Run();
-	//RC->plot_spectra();
-	return 0;
-}
-
-//Some ROOT users cannot invoke a function named main from the interpreter. This is the reason for this function.
-void run_main() {
-	main();
-}
 
 /* Mathematical functions (non-member functions) */
 
