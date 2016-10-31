@@ -63,7 +63,7 @@
 	"RandomChains.h" - Header file for "RandomChains.cc".
 	"run_file.cc" - From this file the user should control and execute the program. Examples of how this can be done already exists here.
 	"Makefile" - By typing <i> make </i> within the folder this file is run and the program is built and the executable "run_file" is created.
-	"run_file" - The program executable which can be run with <it> ./run_file </i>
+	"run_file" - The program executable which can be run with <tt> ./run_file </tt>
 	"dump_input.txt" - User input chains are dumped to the following file. It has the same format as the input chains files should be given.
 	"dump_article.txt" - Input chains to reproduce the numbers in the Lund article are dumped to this file. 
 	"dump_test.txt" - Input chains for the trivial test which can be run to verify the workings of the program are dumped to this file. 
