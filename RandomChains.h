@@ -1,3 +1,7 @@
+/** @file RandomChains.h
+@author Anton Roth (anton.roth@nuclear.lu.se)
+@brief Header file for RandomChains.cc
+*/
 #include <iostream>
 #include "TH1.h"
 #include "TFile.h"

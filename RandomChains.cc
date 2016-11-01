@@ -1,8 +1,8 @@
 /*!
-	@file RandomChains.cc
-	@author Anton Roth (anton.roth@nuclear.lu.se)
+@file RandomChains.cc
+@author Anton Roth (anton.roth@nuclear.lu.se)
 
-	@brief Main program file
+@brief Main program file
 */
 
 /** @mainpage RandomChains
@@ -17,13 +17,13 @@
 	et. al. Nuclear Physics A 953 (2016) 117-138</a>. The main
 	purposes of the program are:
 
-        - Free access to the code the Lund Nuclear Structure group has
+        - Provide free access to the code the Lund Nuclear Structure group has
 	used
 
         - Reproduce the numbers presented in the paper given
 	above
 
-        - Try the method on user provided data
+        - Try the method on user provided chains and experimental data
 
 	The complete program is located in the downloaded git repository.
 	The program consists of the following three steps:
@@ -58,11 +58,11 @@
 	- <tt>beam_on.csv</tt>: The spectra for all pixels for beam
           ON. <b>OPTIONAL!</b>
 
-	- <tt>recon_beam_on.csv</tt>: The reconstructed spectra (for
+	- <tt>rec_beam_on.csv</tt>: The reconstructed spectra (for
           escaped alpha particles) for all pixels for beam
           ON. <b>MANDATORY!</b>
 
-	- <tt>recon_beam_off.csv</tt>: The reconstructed spectra (for
+	- <tt>rec_beam_off.csv</tt>: The reconstructed spectra (for
           escaped alpha particles) for all pixels for beam
           OFF. <b>MANDATORY!</b>
 
@@ -77,14 +77,14 @@
 	in each of the spectra and the folder in which the data is
 	stored, need to be given as input.
 
-\section users_tag FOR USERS WHO WISH TO RUN THE PROGRAM ON OTHER EXPERIMENTAL DATA:
+@subsection users_tag FOR USERS WHO WISH TO RUN THE PROGRAM ON OTHER EXPERIMENTAL DATA:
         Create a new folder with files with the same names as in the
 	<tt>Lund_data</tt> folder and insert the new data here. In the
 	program, the user only needs to provide the name of this
 	created folder, the number of pixels and the total number of
 	bins for the data in the constructor: RandomChains::RandomChains(int pixels, int bins, string folder)
 
-@subsection decay_chains_tag Decay chains
+@section decay_chains_tag Decay chains
         From a user perspective, what defines a decay chain is the
 	following characteristics:
 
@@ -132,7 +132,7 @@
 	is compared to a value obtained through the calculation of a
 	simple formula.
 
-@section users_chain_tag FOR USERS WHO WISH TO SPECIFY HER/HIS OWN DECAY CHAINS:
+@subsection users_chain_tag FOR USERS WHO WISH TO SPECIFY HER/HIS OWN DECAY CHAINS:
         Have a look at the file <tt>dump_articles.txt</tt>. This file
         contains the input data if one wants to reproduce the article
         numbers by the Lund group. Edit this file after your own
@@ -144,13 +144,13 @@
 	OBS: The duration of the experiment is also given in the same file.
 
 @section random_tag Calculate the expected number of random chains
-	The expected number of random chains are calculated with the
+	The expected number of random chains is calculated with the
 	method described in <a
 	href="http://www.sciencedirect.com/science/article/pii/S0375947416300768">U. Forsberg
 	et. al. Nuclear Physics A 953 (2016) 117-138</a>.
 
 @section files_tag Files and folders
-        A list of files and folders is provided bellow:
+        A list of files and folders is provided below:
 
 	RandomChains.cc: The class RandomChains is implemented here. All methods and functions can be found here.
 
@@ -183,11 +183,11 @@
 	Lund_data/beam_on.csv: Comma separated file of the spectra for
 	all pixels in the implantation detector for beam ON.
 
-	Lund_data/recon_beam_on.csv: Comma separated file of the
+	Lund_data/rec_beam_on.csv: Comma separated file of the
 	reconstructed spectra for all pixels in the implantation
 	detector for beam ON.
 
-	Lund_data/recon_beam_off.csv: Comma separated file of the
+	Lund_data/rec_beam_off.csv: Comma separated file of the
 	reconstructed spectra for all pixels in the implantation
 	detector for beam OFF.
 
@@ -211,23 +211,25 @@
 
 using namespace std;
 
-RandomChains::RandomChains(int pixels, int bins, string folder) : nbr_pixels(pixels), nbr_bins(bins) {
-/* The constructor of class RandomChains.
- 	Input arguments:
-		int pixels (default=1024): Number of pixels in the spectrum data
-		int bins (default=4096): Total number of bins in every spectrum
-		string folder (default="Lund_data"): Name of the folder which contains the experimental data
-	The following method is invoked:
-		void ReadExperimentalData();
-	The constructor initialises the following member data:
-		string folder_data;
-		vector<vector<int>> data_beam_on;
-		vector<vector<int>> data_reconstructed_beam_on;
-		vector<vector<int>> data_reconstructed_beam_off;
+// The constructor of class RandomChains.
+/**
+<p> In the constructor the experimental data are read in from ".csv" files in the folder given as input argument. The number of pixels in the implantation detector and the total number of bins in each spectrum are also provided as input arguments.</p>
+	@param pixels number of pixels in the spectrum data
+	@param bins total number of bins in every spectrum
+	@param folder name of the folder which contains the experimental data
+	@returns returns object of the class RandomChains
 
-Description: In the constructor the experimental data are read in from ".csv" files in the folder given as input argument. The number of pixels in the implantation detector and the total number of bins in each spectrum are also provided as input arguments.
+	@see ReadExperimentalData()
+
+The following is initialised:
+	- RandomChains::folder_data
+	- RandomChains::data_beam_on
+	- RandomChains::data_reconstructed_beam_on
+	- RandomChains::data_reconstructed_beam_off
+
 
 */
+RandomChains::RandomChains(int pixels, int bins, string folder) : nbr_pixels(pixels), nbr_bins(bins) {
 
 	folder_data = folder + "/";
 
@@ -235,23 +237,22 @@ Description: In the constructor the experimental data are read in from ".csv" fi
 
 }
 
-void RandomChains::SetDecayChains(string input_chains) {
-/* This method sets the decay chain/chains characteristics.
-	Input arguments:
-		string input_chains (default=""): The name of the file from which the input should be read
-	From this method the following methods are invoked:
-		void set_test_chains();
-		void generate_test_data();
-		void set_article_chains();
-		void set_chains_from_input_file(string input_file);
-		void dump_input_to_file();
-	In this method the following member data is initialised:
-		int run_type;
+/** This method sets the decay chain/chains characteristics.
+This is the main method for setting the decay chains. In this method the decay chain/chains characteristics are set with an input file provided as input argument. If no input file is given, the user gets to choose the type of run; reproduce article numbers or test the program on trivial data. Depending on the type of run different methods are invoked. To verify that this step was made successfully, the input is dumped to a file named "dump_input.txt" for user provided input and "dump_article.txt" for reproduce article numbers and "dump_test.txt" for the test.
+	@param input_chains the name of the file from which the input should be read
 
-Description: This is the main method for setting the decay chains. In this method the decay chain/chains characteristics are set with an input file provided as input argument. If no input file is given, the user gets to choose the type of run; reproduce article numbers or test the program on trivial data. Depending on the type of run different methods are invoked. To verify that this step, the input is dumped to a file named "dump_input.txt" for user provided input and "dump_article.txt" for reproduce article numbers and "dump_test.txt" for the test.
+	@see set_test_chains()
+	@see generate_test_data()
+	@see set_article_chains()
+	@see set_chains_from_input_file(string input_file)
+	@see dump_input_to_file()
+
+	The following is initialised:
+	- RandomChains::run_type
 
 */
 
+void RandomChains::SetDecayChains(string input_chains) {
 	bool valid_input = false;
 
 	if(!input_chains.empty()) {
@@ -302,20 +303,15 @@ Description: This is the main method for setting the decay chains. In this metho
 	dump_input_to_file();
 }
 
-void RandomChains::Run() {
-/* This method computes the expected number of random chains.
-	Input arguments:
+/** This method computes the expected number of random chains.
+With this method the expected number of random chains due to random fluctuations in the background for the decay chain/chains and experimental data provided. First the number of implants per pixel is calculated. Then the background rates in every pixel for the different decay types are calculated. This is followed by the calculation of the expected number of random chains. Finally, the results are printed in the terminal window.
+		@see RandomChains::calculate_implants()
+		@see RandomChains::rate_calc()
+		@see RandomChains::calculate_expected_nbr_random_chains()
+		@see RandomChains::print_result()
 
-	From this method the following methods are invoked:
-		void calculate_implants();
-		void rate_calc();
-		void calculate_expected_nbr_random_chains();
-		void print_result();
-
-	In this method the following member data is initialised:
-
-Description: With this method the expected number of random chains due to random fluctuations in the background for the decay chain/chains and experimental data provided. First the number of implants per pixel is calculated. Then the background rates in every pixel for the different decay types are calculated. This is followed by the calculation of the expected number of random chains. Finally, the results are printed in the terminal window.
 */
+void RandomChains::Run() {
 
 	// The number of implants per pixel is calculated.
 	calculate_implants();
@@ -334,22 +330,19 @@ Description: With this method the expected number of random chains due to random
 
 }
 
-void RandomChains::ReadExperimentalData() {
-/* The experimental data is read in.
-	Input arguments:
+/** The experimental data is read in.
+The experimental data is read in from the folder provided in the constructor. All vectors are initialised. The spectrum data and fission data are read in with the method <em> read_exp_file(string file_name) </em>.
+		@see RandomChains::read_exp_file(string file_name)
 
-	From this method the following methods are invoked:
-		void read_exp_file(string file_name);
+	The following data is initialised:
+		- RandomChains::data_beam_on
+		- RandomChains::data_reconstructed_beam_on
+		- RandomChains::data_reconstructed_beam_off
+		- RandomChains::fissions_pixels
+		- RandomChains::nbr_implants
 
-	In this method the following member data is initialised:
-		vector<vector<int>> data_beam_on;
-		vector<vector<int>> data_reconstructed_beam_on;
-		vector<vector<int>> data_reconstructed_beam_off;
-		vector<double> fissions_pixels;
-		vector<int> nbr_implants;
-
-Description: The experimental data is read in from the folder provided in the constructor. All vectors are initialised. The spectrum data and fission data are read in with the method <em> read_exp_file(string file_name) </em>.
 */
+void RandomChains::ReadExperimentalData() {
 	cout << "Reading experimental data from the relative path: " << folder_data << endl;
 
 	data_beam_on.resize(nbr_pixels);
@@ -378,21 +371,18 @@ Description: The experimental data is read in from the folder provided in the co
 	read_exp_file(read_file);
 }
 
-void RandomChains::read_exp_file(string read_file) {
-/* The experimental data files are read in.
-	Input arguments:
-		string read_file: The name of the file to be read in.
+/** The experimental data files are read in.
+The experimental data in the comma separated files are read in from the folder provided in the constructor. The files read in are: "beam_on.csv", "recon_beam_on.csv", "recon_beam_off.csv" and "pixels_with_fissions.csv"
+		@param read_file the name of the file to be read in.
 
-	From this method the following methods are invoked:
+	The following is initialised:
+		- RandomChains::data_beam_on
+		- RandomChains::data_reconstructed_beam_on
+		- RandomChains::data_reconstructed_beam_off
+		- RandomChains::fissions_pixels
 
-	In this method the following member data are set:
-		vector<vector<int>> data_beam_on;
-		vector<vector<int>> data_reconstructed_beam_on;
-		vector<vector<int>> data_reconstructed_beam_off;
-		vector<double> fissions_pixels;
-
-Description: The experimental data in the comma separated files are read in from the folder provided in the constructor. The files read in are: "beam_on.csv", "recon_beam_on.csv", "recon_beam_off.csv" and "pixels_with_fissions.csv"
 */
+void RandomChains::read_exp_file(string read_file) {
 
 	int bin = 0; int pixel = 0;
 	string val;
@@ -467,33 +457,30 @@ Description: The experimental data in the comma separated files are read in from
 
 }
 
+/**The destructor of RandomChains. Object is deleted.*/
 RandomChains::~RandomChains() {
-	/*The destructor of RandomChains. Object is deleted.*/
 	delete this;
 }
 
-void RandomChains::generate_test_data() {
-/* The test data is generated.
-	Input arguments:
+/** The test data is generated.
+The test data is generated in this method. All the read in data is substituted.
 
-	From this method the following methods are invoked:
+	The following is initialised:
+		- RandomChains::eon
+		- RandomChains::eoff
+		- RandomChains::non
+		- RandomChains::noff
+		- RandomChains::aon
+		- RandomChains::aoff
+		- RandomChains::imps
+		- RandomChains::fissions
+		- RandomChains::data_beam_on
+		- RandomChains::data_reconstructed_beam_on
+		- RandomChains::data_reconstructed_beam_off
+		- RandomChains::fissions_pixels
 
-	In this method the following member data are set:
-		int eon;
-		int eoff;
-		int non;
-		int noff;
-		int aon;
-		int aoff;
-		int imps;
-		int fissions;
-		vector<vector<int>> data_beam_on;
-		vector<vector<int>> data_reconstructed_beam_on;
-		vector<vector<int>> data_reconstructed_beam_off;
-		vector<double> fissions_pixels;
-
-Description: The test data is generated in this method. All the read in data is substituted.
 */
+void RandomChains::generate_test_data() {
 	//Clearing the data
 	for(int k = 0; k < nbr_pixels; k++) {
 		for(int i = 0; i < nbr_bins; i++) {
@@ -537,24 +524,21 @@ Description: The test data is generated in this method. All the read in data is 
 }
 
 
-void RandomChains::set_test_chains() {
-/* The test chains are set.
-	Input arguments:
+/** The test chains are set.
+This method defines the test chains characteristics and limits for the different signal types. The experiment duration is also set.
+	The following is initialised:
 
-	From this method the following methods are invoked:
+	- RandomChains::chain_length
+	- RandomChains::beam_status
+	- RandomChains::decay_type
+	- RandomChains::time_span
+	- RandomChains::lower_limit_alphas, upper_limit_alphas
+	- RandomChains::lower_limit_escapes, upper_limit_escapes
+	- RandomChains::lower_limit_implants, upper_limit_implants
+	- RandomChains::experiment_time
 
-	In this method the following member data are set:
-		vector<int> chain_length;
-		vector<int> beam_status;
-		vector<char> decay_type;
-		vector<double> time_span;
-		int lower_limit_alphas, upper_limit_alphas;
-		int lower_limit_escapes, upper_limit_escapes;
-		int lower_limit_implants, upper_limit_implants;
-		double experiment_time;
-
-Description: This method defines the test chains characteristics and limits for the different signal types. The experiment duration is also set.
 */
+void RandomChains::set_test_chains() {
 
 	//Do not modify these numbers!!!
 	chain_length = {5};
@@ -569,24 +553,21 @@ Description: This method defines the test chains characteristics and limits for 
 	experiment_time = 1000000;
 }
 
-void RandomChains::set_article_chains() {
-/* The Lund article chains are set.
-	Input arguments:
+/** The Lund article chains are set.
+This method defines the Lund article chains characteristics and limits for the different signal types. The experiment duration is also set.
 
-	From this method the following methods are invoked:
+The following is initialised:
+	- RandomChains::chain_length
+	- RandomChains::beam_status
+	- RandomChains::decay_type
+	- RandomChains::time_span
+	- RandomChains::lower_limit_alphas, upper_limit_alphas
+	- RandomChains::lower_limit_escapes, upper_limit_escapes
+	- RandomChains::lower_limit_implants, upper_limit_implants
+	- RandomChains::experiment_time
 
-	In this method the following member data are set:
-		vector<int> chain_length;
-		vector<int> beam_status;
-		vector<char> decay_type;
-		vector<double> time_span;
-		int lower_limit_alphas, upper_limit_alphas;
-		int lower_limit_escapes, upper_limit_escapes;
-		int lower_limit_implants, upper_limit_implants;
-		double experiment_time;
-
-Description: This method defines the Lund article chains characteristics and limits for the different signal types. The experiment duration is also set.
 */
+void RandomChains::set_article_chains() {
 
 	//Do not modify these numbers!!!
 	chain_length = {2, 2, 3, 3, 3, 3, 3};
@@ -601,16 +582,10 @@ Description: This method defines the Lund article chains characteristics and lim
 	experiment_time = 1433000;
 }
 
-void RandomChains::dump_input_to_file() {
-/* This method dumps the input chains to a file.
-	Input arguments:
-
-	From this method the following methods are invoked:
-
-	In this method the following member data are set:
-
-Description: This method dumps the set chains to a file. If the test is run the file name is "dump_test.txt" and if the reproduce article numbers is run the file name is "dump_article.txt". Otherwise the file name is "dump_input.txt".
+/** This method dumps the input chains to a file.
+This method dumps the set chains to a file. If the test is run the file name is "dump_test.txt" and if the reproduce article numbers is run the file name is "dump_article.txt". Otherwise the file name is "dump_input.txt".
 */
+void RandomChains::dump_input_to_file() {
 
 	char output[64];
 	if(run_type == 2) {
@@ -653,25 +628,22 @@ Description: This method dumps the set chains to a file. If the test is run the 
 	cout << out << endl;
 }
 
-void RandomChains::set_chains_from_input_file(string input_chains) {
-/* This method sets the chain/chains from a given input file.
-	Input arguments:
-		string input_chains: File name of the input chains which are provided by the user in the method <em> SetDecayChains </em>
+/** This method sets the chain/chains from a given input file.
+This method sets the chains from a file. It is necessary that the format of the file which is to be read in follows the correct format. The spaces are important! What is read in is printed in the terminal window and can also be found in the file dumped after a run.
+	@param input_chains file name of the input chains which are provided by the user in the method <em> SetDecayChains </em>
 
-	From this method the following methods are invoked:
+The following is initialised:
+	- RandomChains::chain_length
+	- RandomChains::beam_status
+	- RandomChains::decay_type
+	- RandomChains::time_span
+	- RandomChains::lower_limit_alphas, upper_limit_alphas
+	- RandomChains::lower_limit_escapes, upper_limit_escapes
+	- RandomChains::lower_limit_implants, upper_limit_implants
+	- RandomChains::experiment_time
 
-	In this method the following member data are set:
-		vector<int> chain_length;
-		vector<int> beam_status;
-		vector<char> decay_type;
-		vector<double> time_span;
-		int lower_limit_alphas, upper_limit_alphas;
-		int lower_limit_escapes, upper_limit_escapes;
-		int lower_limit_implants, upper_limit_implants;
-		double experiment_time;
-
-Description: This method sets the chains from a file. It is necessary that the format of the file which is to be read in follows the correct format. The spaces are important! What is read in is printed in the terminal window and can also be found in the file dumped after a run.
 */
+void RandomChains::set_chains_from_input_file(string input_chains) {
 
 	string filename;
 
@@ -737,18 +709,13 @@ Description: This method sets the chains from a file. It is necessary that the f
 }
 
 
-void RandomChains::calculate_implants() {
-/* Calculates the number of implants.
-	Input arguments:
+/** Calculates the number of implants.
+The number of implants in every pixel is calculated with the lower and upper limits set in <em>SetDecayChains</em>.
 
-	From this method the following methods are invoked:
-
-	In this method the following member data are set:
-		vector<int> nbr_implants;
-
-Description: The number of implants in every pixel is calculated with the lower and upper limits set in <em>SetDecayChains</em>.
+The following is initialised:
+		- RandomChains::nbr_implants
 */
-
+void RandomChains::calculate_implants() {
 
 	vector< vector<int> > data;
 
@@ -765,26 +732,14 @@ Description: The number of implants in every pixel is calculated with the lower 
 
 }
 
-void RandomChains::calculate_rates() {
-/* This method calculates the rates in every pixel for the specific decay types, one decay at a time.
+/** This method calculates the rates in every pixel for the specific decay types, one decay at a time.
+The number of implants in every pixel is calculated with the lower and upper limits set in <em>SetDecayChains</em>.
 
+The following is initialised:
+	- RandomChains::nbr_implants
 
-	Input arguments:
-
-	From this method the following methods are invoked:
-
-	In this method the following member data are set:
-		vector<int> nbr_implants;
-
-Description: The number of implants in every pixel is calculated with the lower and upper limits set in <em>SetDecayChains</em>.
 */
-	/*This method calculates the rates in every pixel for the specific decay types, one decay at a time.
-
-	Through this method the following member data is initialised:
-		vector<array<double, nbr_pixels>> rate;
-
-	*/
-
+void RandomChains::calculate_rates() {
 	cout << "Calculating rates " << endl;
 
 	for(unsigned int i = 0; i < decay_type.size(); i++) {
@@ -793,20 +748,16 @@ Description: The number of implants in every pixel is calculated with the lower 
 
 }
 
-void RandomChains::rate_calc(char type, int beam) {
-/* This method calculates the rates in every pixel for the specific decay types and beam status for a decay.
+/** This method calculates the rates in every pixel for the specific decay types and beam status for a decay.
+Given the decay type and beam status the rate for every pixel is calculated and stored in the 2D vector <em>rate</em>.
+		@param type decay type, i.e. 'a', 'e' or 'f'.
+		@param beam beam status, i.e. 1 or 0.
 
-	Input arguments:
-		char type=decay type, i.e. 'a', 'e' or 'f'.
-		int beam=beam status, i.e. 1 or 0.
+The following is intialised:
+		- RandomChains::rate
 
-	From this method the following methods are invoked:
-
-	In this method the following member data are set:
-		vector< vector<double> > rate;
-
-Description: Given the decay type and beam status the rate for every pixel is calculated and stored in the 2D vector <em>rate</em>.
 */
+void RandomChains::rate_calc(char type, int beam) {
 
 	//Based on the beam status the spectrum is determined
 	vector< vector<int> > data;
@@ -857,18 +808,13 @@ Description: Given the decay type and beam status the rate for every pixel is ca
 	rate.push_back(rate_temp);
 }
 
-void RandomChains::calculate_expected_nbr_random_chains() {
-/* This method calculates the TOTAL number of expected random chains for the input decay chain/chains.
+/** This method calculates the TOTAL number of expected random chains for the input decay chain/chains.
+On the basis of the rates calculated for every decay the expected number of random chains due to random fluctuations in the background are determined per pixel and decay chain. The values of every pixel are then summed for every decay chain to a final value.
 
-	Input arguments:
-
-	From this method the following methods are invoked:
-
-	In this method the following member data are set:
-		vector<double> nbr_expected_random_chains;
-
-Description: On the basis of the rates calculated for every decay the expected number of random chains due to random fluctuations in the background are determined per pixel and decay chain. The values of every pixel are then summed for every decay chain to a final value.
+The following is initialised:
+		-RandomChains::nbr_expected_random_chains
 */
+void RandomChains::calculate_expected_nbr_random_chains() {
 
 	cout << "Calculating expected number of random chains " << endl;
 	int offset = 0;
@@ -912,18 +858,14 @@ Description: On the basis of the rates calculated for every decay the expected n
 	}
 }
 
-void RandomChains::print_result() {
-/* The results of the run are printed.
+/** The results of the run are printed.
+This is the method that is invoked at the end of the constructor and it presents the result of the run in the terminal window. If the test was run another member function is called for further output.
 
-	Input arguments:
+The following is initialised:
+		- RandomChains::nbr_expected_random_chains
 
-	From this method the following methods are invoked:
-
-	In this method the following member data are set:
-		vector<double> nbr_expected_random_chains;
-
-Description: This is the method that is invoked at the end of the constructor and it presents the result of the run in the terminal window. If the test was run another member function is called for further output.
 */
+void RandomChains::print_result() {
 
 	cout << "**************************************************" << endl;
 	if(run_type == 2) cout << "These are the result of the TEST run: " << endl;
@@ -938,17 +880,10 @@ Description: This is the method that is invoked at the end of the constructor an
 
 }
 
-void RandomChains::print_test_result() {
-/* The results of the test run are printed.
-
-	Input arguments:
-
-	From this method the following methods are invoked:
-
-	In this method the following member data are set:
-
-Description: This method calculates the random chains in the test run with a simple formula and prints this result in the terminal window.
+/** The results of the test run are printed.
+This method calculates the random chains in the test run with a simple formula and prints this result in the terminal window.
 */
+void RandomChains::print_test_result() {
 
 	cout << "*************************************************" << endl;
 	cout << "NOW TEST CALCULATION" << endl;
@@ -974,30 +909,23 @@ Description: This method calculates the random chains in the test run with a sim
 
 /* Mathematical functions (non-member functions) */
 
-double Poisson_pmf(int nbr_to_observe, float expected_value) {
-/* Poisson probability mass function. <em>p(k) = lambda^k exp(-lambda)/k!</em>
-
-	Input arguments:
-		double expected_value: lambda
-		int nbr_to_observe: k
-
-	Returns:
-		<em>p(k)</em>, i.e. the probability to observe k observations
+/** Poisson probability mass function. <em>p(k) = lambda^k exp(-lambda)/k!</em>
+	@param expected_value <i> lambda </i>
+	@param nbr_to_observe <i> k </i>
+	@return <em>p(k)</em>, i.e. the probability to observe k observations
 
 */
+double Poisson_pmf(int nbr_to_observe, float expected_value) {
 	double prob;
 	prob = (exp(-expected_value)*pow(expected_value,nbr_to_observe))/(factorial(nbr_to_observe));
 	return prob;
 }
 
-int factorial(int k){
-/* Factorial
-	Input arguments:
-		int k
-
-	Returns:
-		int factorial
+/** Factorial
+	@param k
+	@return factorial of <i>k</i>
 */
+int factorial(int k){
 	int ret;
 	ret = 1;
 	for (int j = 1; j <= k; j++){

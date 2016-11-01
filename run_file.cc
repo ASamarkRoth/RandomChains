@@ -1,6 +1,11 @@
+/*!
+@file RandomChains.cc
+@author Anton Roth (anton.roth@nuclear.lu.se)
+
+@brief From this file the program should be controlled.
+*/
 #include "RandomChains.h"
 
-/*From here the RandomChains computation is controlled. */
 int main() {
 
 	//This is how the default run is made (i.e. on Lund experimental data)
