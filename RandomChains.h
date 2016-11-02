@@ -3,8 +3,6 @@
 @brief Header file for RandomChains.cc
 */
 #include <iostream>
-#include "TH1.h"
-#include "TFile.h"
 #include <fstream>
 #include <string>
 #include <vector>
@@ -68,13 +66,10 @@ class RandomChains {
 
 		//all methods are described in "RandomChains.cc"
 		void read_exp_file(string file_name);
-		void prepare_data(int run_type);
 		void generate_test_data();
-		void read_experimental_data();
 		void calculate_implants();
 		void calculate_rates();
 		void calculate_expected_nbr_random_chains();
-		void set_chains(int run_type, string input_file);
 		void set_test_chains();
 		void set_article_chains();
 		void set_chains_from_input_file(string input_file);
@@ -88,7 +83,6 @@ class RandomChains {
 		~RandomChains();
 		void print_result();
 		void print_test_result();
-		void run_main();
 		void dump_input_to_file();
 		
 

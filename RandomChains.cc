@@ -38,6 +38,19 @@
            decay chain/chains with the experimental data. Achieved
            with the method: RandomChains::Run()
 
+@subsection run_tag How to run RandomChains?
+	The program is preferably controlled from the file <tt>run_file.cc</tt>.
+
+	When located in the directory of RandomChains type the following in the terminal to run the program:
+
+	-# <tt> make </tt>
+
+	-# <tt> ./run_file </tt>
+
+@subsection computer_tag Computer requirements
+	The program has been successfully run on Unix systems Linux Ubuntu 14.04 with g++ version ...
+
+
 
 @section Experiment_tag Experimental data
         The Lund experimental data (see <a
@@ -200,12 +213,6 @@
 #include <sstream>
 #include "RandomChains.h"
 #include <assert.h>
-#include "TCanvas.h"
-#include "TRint.h"
-#include "TStyle.h"
-#include "TAxis.h"
-#include "TGaxis.h"
-#include "TLegend.h"
 #include "math.h"
 #include <typeinfo>
 
@@ -465,19 +472,19 @@ RandomChains::~RandomChains() {
 /** The test data is generated.
 The test data is generated in this method. All the read in data is substituted.
 
-	The following is initialised:
-		- RandomChains::eon
-		- RandomChains::eoff
-		- RandomChains::non
-		- RandomChains::noff
-		- RandomChains::aon
-		- RandomChains::aoff
-		- RandomChains::imps
-		- RandomChains::fissions
-		- RandomChains::data_beam_on
-		- RandomChains::data_reconstructed_beam_on
-		- RandomChains::data_reconstructed_beam_off
-		- RandomChains::fissions_pixels
+The following is initialised:
+	- RandomChains::eon
+	- RandomChains::eoff
+	- RandomChains::non
+	- RandomChains::noff
+	- RandomChains::aon
+	- RandomChains::aoff
+	- RandomChains::imps
+	- RandomChains::fissions
+	- RandomChains::data_beam_on
+	- RandomChains::data_reconstructed_beam_on
+	- RandomChains::data_reconstructed_beam_off
+	- RandomChains::fissions_pixels
 
 */
 void RandomChains::generate_test_data() {
@@ -733,7 +740,7 @@ void RandomChains::calculate_implants() {
 }
 
 /** This method calculates the rates in every pixel for the specific decay types, one decay at a time.
-The number of implants in every pixel is calculated with the lower and upper limits set in <em>SetDecayChains</em>.
+The rate in every pixel is calculated with the lower and upper limits set in <em>SetDecayChains</em>.
 
 The following is initialised:
 	- RandomChains::nbr_implants
@@ -812,7 +819,7 @@ void RandomChains::rate_calc(char type, int beam) {
 On the basis of the rates calculated for every decay the expected number of random chains due to random fluctuations in the background are determined per pixel and decay chain. The values of every pixel are then summed for every decay chain to a final value.
 
 The following is initialised:
-		-RandomChains::nbr_expected_random_chains
+		- RandomChains::nbr_expected_random_chains
 */
 void RandomChains::calculate_expected_nbr_random_chains() {
 
