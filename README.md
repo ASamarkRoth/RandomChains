@@ -38,10 +38,11 @@ When located in the directory of RandomChains type the following in the terminal
 
 2. <tt> ./run_file </tt>
 
-<h4>Computer requirements</h4>
-The program has been successfully run on Unix systems Linux Ubuntu 14.04 with g++ version ...
+<h4>System requirements</h4>
+The program has been successfully run on the following systems:
+- Linux Ubuntu 14.04 with g++ version 4.8.4 and std=c++11.
 
 <h4>Documentation</h4>
-A rather detailed documentation of the program can be generated with Doxygen, by typing 'doxygen' in the program folder, and then be found in the created folder 'documentation/'. An '.html' file is found at 'documentation/html/index.html' and the '.pdf' is generated with make in the same folder as the follwoing file is created 'documentation/latex/runman.pdf'.
+A rather detailed documentation of the program can be generated with <b>Doxygen</b>, by typing <tt>doxygen</tt> in the program folder, and then be found in the created folder <i>documentation/</i>. An '.html' file is found at <i>documentation/html/index.html</i> and the <i>.pdf</i> is generated with make in the same folder as the follwoing file is created <i>documentation/latex/runman.pdf</i>.
 
-OBS: A pregenerated documentation can be found in 'runman.pdf'.
+OBS: A pregenerated documentation can be found in <i>runman.pdf</i>.

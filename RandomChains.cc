@@ -48,7 +48,8 @@
 	-# <tt> ./run_file </tt>
 
 @subsection computer_tag Computer requirements
-	The program has been successfully run on Unix systems Linux Ubuntu 14.04 with g++ version ...
+	The program has been successfully run on the following systems:
+      -	Linux Ubuntu 14.04 with g++ version 4.8.4 and std=c++11
 
 
 
@@ -131,7 +132,7 @@
 
 	The decay chains are given to the program with an input
 	file. In the downloaded repository examples of such input
-	files are <tt>dump_articles.txt</tt> and
+	files are <tt>dump_article.txt</tt> and
 	<tt>dump_test.txt</tt>. If no input of decay chains are
 	provided the user can choose between two options:
 
@@ -922,7 +923,7 @@ void RandomChains::print_test_result() {
 	@return <em>p(k)</em>, i.e. the probability to observe k observations
 
 */
-double Poisson_pmf(int nbr_to_observe, float expected_value) {
+double Poisson_pmf(int nbr_to_observe, double expected_value) {
 	double prob;
 	prob = (exp(-expected_value)*pow(expected_value,nbr_to_observe))/(factorial(nbr_to_observe));
 	return prob;

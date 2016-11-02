@@ -10,6 +10,3 @@
 !dump_article.txt
 !dump_test.txt
 !README.md
-documentation/
-*.o
-run_file

@@ -1,9 +1,11 @@
-CC=g++ -std=gnu++11
+CC=g++ -std=c++11
 CFLAGS=-g -c -Wall
+ifdef ROOTSYS
 INCLUDES=`root-config --cflags`
 LIBDIRS= `root-config --libs --glibs`
 ROOTLIBS='-lRooFit -lHtml -lMinuit -lRooFitCore -lRooStats -lHistFactory'
 LIBRARY= -L ${ROOTSYS}/lib 
+endif
 LDFLAGS=
 SOURCES=run_file.cc RandomChains.cc
 DEPS=RandomChains.h Style.code
@@ -19,7 +21,6 @@ $(EXECUTABLE): $(OBJECTS) $(DEPS)
 
 .cc.o:
 	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
-	#$(CC) $(CFLAGS) $< -o $@
 
 #Tells make not to confuse possible clean and help files with the targets with the same names
 .PHONY: clean help

@@ -790,8 +790,8 @@ INPUT                 += dump_article.txt
 INPUT                 += dump_test.txt
 INPUT                 += Lund_data
 INPUT                 += Lund_data/beam_on.csv
-INPUT                 += Lund_data/recon_beam_on.csv
-INPUT                 += Lund_data/recon_beam_off.csv
+INPUT                 += Lund_data/rec_beam_on.csv
+INPUT                 += Lund_data/rec_beam_off.csv
 INPUT                 += Lund_data/pixels_with_fissions.csv
 
 # This tag can be used to specify the character encoding of the source files

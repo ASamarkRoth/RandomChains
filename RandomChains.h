@@ -32,9 +32,9 @@ class RandomChains {
 		int lower_limit_implants, upper_limit_implants;
 
 		//The spectra are stored in these 2D vectors
-		vector<vector<int>> data_beam_on;
-		vector<vector<int>> data_reconstructed_beam_on;
-		vector<vector<int>> data_reconstructed_beam_off;
+		vector< vector<int> > data_beam_on;
+		vector< vector<int> > data_reconstructed_beam_on;
+		vector< vector<int> > data_reconstructed_beam_off;
 
 		//pixels with fissions
 		vector<double> fissions_pixels;
@@ -89,7 +89,7 @@ class RandomChains {
 };
 
 /* Mathematical functions (non-member) */
-double Poisson_pmf(int nbr_to_observe, float expected_value);
+double Poisson_pmf(int nbr_to_observe, double expected_value);
 
 int factorial(int k);
 
