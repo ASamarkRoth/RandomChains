@@ -1,0 +1,15 @@
+*
+!.gitignore
+!Doxyfile
+!RandomChains.cc
+!RandomChains.h
+!run_file.cc
+!Makefile
+!Lund_data/
+!dump_input.txt
+!dump_article.txt
+!dump_test.txt
+!README.md
+documentation/
+*.o
+run_file
